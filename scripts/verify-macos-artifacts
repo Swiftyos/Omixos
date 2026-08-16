@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$#" -ne 2 ]]; then
+  echo "Usage: scripts/verify-macos-artifacts VM.qcow2 USB.iso" >&2
+  exit 2
+fi
+
+vm_image="$1"
+usb_image="$2"
+
+for command in qemu-img bsdtar shasum; do
+  if ! command -v "${command}" >/dev/null 2>&1; then
+    echo "Required command is missing: ${command}" >&2
+    exit 1
+  fi
+done
+
+for artifact in "${vm_image}" "${usb_image}"; do
+  if [[ ! -f "${artifact}" ]]; then
+    echo "Artifact not found: ${artifact}" >&2
+    exit 1
+  fi
+done
+
+qemu-img check "${vm_image}"
+qemu-img info "${vm_image}" | grep -Fq 'virtual size: 128 GiB'
+
+iso_contents="$(bsdtar -tf "${usb_image}")"
+for required_path in \
+  EFI/BOOT/BOOTAA64.EFI \
+  EFI/BOOT/grub.cfg \
+  boot/efi.img \
+  nix-store.squashfs \
+  version.txt; do
+  if ! grep -Fxq "${required_path}" <<<"${iso_contents}"; then
+    echo "USB image is missing ${required_path}" >&2
+    exit 1
+  fi
+done
+
+shasum -a 256 "${vm_image}" "${usb_image}"
+echo "Mac VM and Apple-silicon USB artifact checks passed."

@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$(id -u)" -ne 0 ]]; then
+  echo "Run this verifier as root inside the OmixOS VM." >&2
+  exit 1
+fi
+
+user="omix"
+uid="$(id -u "${user}")"
+runtime_dir="/run/user/${uid}"
+
+systemctl is-system-running --wait
+test -z "$(systemctl --failed --no-legend --plain)"
+systemctl is-active greetd NetworkManager dbus sshd
+
+instance="$(find "${runtime_dir}/hypr" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | head -n 1)"
+if [[ -z "${instance}" ]]; then
+  echo "No Hyprland IPC instance found below ${runtime_dir}/hypr." >&2
+  exit 1
+fi
+
+wayland_display=""
+for candidate in "${runtime_dir}"/wayland-*; do
+  if [[ -S "${candidate}" ]]; then
+    wayland_display="$(basename "${candidate}")"
+    break
+  fi
+done
+if [[ -z "${wayland_display}" ]]; then
+  echo "No Wayland socket found below ${runtime_dir}." >&2
+  exit 1
+fi
+
+run_session() {
+  runuser -u "${user}" -- env \
+    XDG_RUNTIME_DIR="${runtime_dir}" \
+    DBUS_SESSION_BUS_ADDRESS="unix:path=${runtime_dir}/bus" \
+    HYPRLAND_INSTANCE_SIGNATURE="${instance}" \
+    WAYLAND_DISPLAY="${wayland_display}" \
+    "$@"
+}
+
+run_session hyprctl monitors -j | jq -e 'length >= 1' >/dev/null
+run_session hyprctl layers -j | grep -q 'omarchy-bar'
+run_session omarchy-shell shell ping
+run_session omarchy-shell notifications ping
+run_session omarchy-version
+
+echo "OmixOS VM acceptance checks passed."

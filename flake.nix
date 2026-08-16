@@ -78,6 +78,26 @@
         modules = commonModules ++ [ ./hosts/dev-aarch64 ];
       };
 
+      macosVmConfiguration = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = { inherit inputs; };
+        modules = commonModules ++ [ ./hosts/macos-vm ];
+      };
+
+      appleSiliconUsbConfiguration = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = { inherit inputs nixos-apple-silicon; };
+        modules = commonModules ++ [
+          nixos-apple-silicon.nixosModules.apple-silicon-installer
+          {
+            hardware.asahi.pkgsSystem = system;
+            nixpkgs.hostPlatform.system = system;
+            nixpkgs.buildPlatform.system = system;
+          }
+          ./hosts/apple-silicon-usb
+        ];
+      };
+
       pi4Configuration = nixos-raspberrypi.lib.nixosSystem {
         inherit nixpkgs;
         specialArgs = { inherit inputs; };
@@ -122,12 +142,16 @@
 
       nixosConfigurations = {
         dev-aarch64 = devConfiguration;
+        macos-vm = macosVmConfiguration;
+        apple-silicon-usb = appleSiliconUsbConfiguration;
         pi4 = pi4Configuration;
         m2 = m2Configuration;
       };
 
       packages.${system} = {
         inherit (pkgs) omarchy-fonts omarchy-runtime omarchy-shell;
+        macos-vm-image = macosVmConfiguration.config.system.build.images.qemu-efi;
+        apple-silicon-usb-image = appleSiliconUsbConfiguration.config.system.build.isoImage;
         pi4-image = pi4ImageConfiguration.config.system.build.sdImage;
         default = pkgs.omarchy-runtime;
       };

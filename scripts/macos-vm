@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+iso_path="${OMIXOS_VM_ISO:-${repo_dir}/nixos-minimal-aarch64-linux.iso}"
+disk_path="${OMIXOS_VM_DISK:-${repo_dir}/omixos-macos-vm.qcow2}"
+vars_path="${OMIXOS_VM_VARS:-${repo_dir}/omixos-macos-vm-vars.fd}"
+ssh_port="${OMIXOS_VM_SSH_PORT:-22222}"
+memory_mib="${OMIXOS_VM_MEMORY_MIB:-16384}"
+cpu_count="${OMIXOS_VM_CPUS:-8}"
+disk_size="${OMIXOS_VM_DISK_SIZE:-128G}"
+
+iso_url="https://releases.nixos.org/nixos/26.05/nixos-26.05.7675.02e08985a27c/nixos-minimal-26.05.7675.02e08985a27c-aarch64-linux.iso"
+iso_sha256="24ff1da965840d9aa3947da75862b952bd2af7e9636f1a79f1d8960995c5ea63"
+
+qemu_bin="${QEMU_SYSTEM_AARCH64:-$(command -v qemu-system-aarch64 || true)}"
+qemu_img="${QEMU_IMG:-$(command -v qemu-img || true)}"
+
+usage() {
+  cat <<'EOF'
+Usage: scripts/macos-vm fetch|create|install|boot
+
+  fetch    Download and verify the pinned NixOS 26.05 ARM64 installer
+  create   Create a new 128 GiB qcow2 disk and persistent UEFI variables
+  install  Boot the installer ISO with the qcow2 disk attached
+  boot     Boot the installed qcow2 disk without the installer ISO
+
+Set OMIXOS_VM_HEADLESS=1 for a serial-only window. Paths, RAM, CPUs, disk size,
+and forwarded SSH port can be overridden with the OMIXOS_VM_* variables above.
+EOF
+}
+
+require_qemu() {
+  if [[ -z "${qemu_bin}" || -z "${qemu_img}" ]]; then
+    echo "QEMU is required. On macOS: brew install qemu" >&2
+    exit 1
+  fi
+}
+
+qemu_share_dir() {
+  local candidate
+  if command -v brew >/dev/null 2>&1; then
+    candidate="$(brew --prefix qemu)/share/qemu"
+    if [[ -d "${candidate}" ]]; then
+      printf '%s\n' "${candidate}"
+      return
+    fi
+  fi
+
+  for candidate in /opt/homebrew/share/qemu /usr/local/share/qemu; do
+    if [[ -d "${candidate}" ]]; then
+      printf '%s\n' "${candidate}"
+      return
+    fi
+  done
+
+  echo "Cannot locate QEMU's EDK2 firmware directory." >&2
+  exit 1
+}
+
+verify_iso() {
+  local actual
+  if [[ ! -f "${iso_path}" ]]; then
+    echo "Installer not found: ${iso_path}; run '$0 fetch' first." >&2
+    exit 1
+  fi
+  actual="$(shasum -a 256 "${iso_path}" | awk '{print $1}')"
+  if [[ "${actual}" != "${iso_sha256}" ]]; then
+    echo "Installer checksum mismatch: expected ${iso_sha256}, got ${actual}" >&2
+    exit 1
+  fi
+}
+
+ensure_vars() {
+  local vars_template="$1"
+  if [[ ! -f "${vars_path}" ]]; then
+    cp "${vars_template}" "${vars_path}"
+  fi
+}
+
+run_qemu() {
+  local mode="$1"
+  local share_dir code_firmware vars_template
+  local -a media display audio
+
+  require_qemu
+  share_dir="$(qemu_share_dir)"
+  code_firmware="${share_dir}/edk2-aarch64-code.fd"
+  vars_template="${share_dir}/edk2-arm-vars.fd"
+
+  if [[ ! -f "${code_firmware}" || ! -f "${vars_template}" ]]; then
+    echo "AArch64 EDK2 firmware is missing below ${share_dir}." >&2
+    exit 1
+  fi
+  if [[ ! -f "${disk_path}" ]]; then
+    echo "VM disk not found: ${disk_path}; run '$0 create' first." >&2
+    exit 1
+  fi
+
+  ensure_vars "${vars_template}"
+
+  media=()
+  if [[ "${mode}" == "install" ]]; then
+    verify_iso
+    media=(
+      -device "virtio-scsi-pci,id=scsi0"
+      -drive "if=none,id=installer,format=raw,media=cdrom,readonly=on,file=${iso_path}"
+      -device "scsi-cd,drive=installer"
+    )
+  fi
+
+  if [[ "${OMIXOS_VM_HEADLESS:-0}" == "1" ]]; then
+    display=(-nographic)
+    audio=(-audiodev "none,id=audio0")
+  else
+    display=(
+      -device qemu-xhci
+      -device usb-kbd
+      -device usb-tablet
+      -display "cocoa,show-cursor=on"
+      -serial "mon:stdio"
+    )
+    audio=(-audiodev "coreaudio,id=audio0")
+  fi
+
+  exec "${qemu_bin}" \
+    -name "omixos-${mode}" \
+    -machine virt,accel=hvf,highmem=on \
+    -cpu host \
+    -smp "${cpu_count}" \
+    -m "${memory_mib}" \
+    -drive "if=pflash,format=raw,readonly=on,file=${code_firmware}" \
+    -drive "if=pflash,format=raw,file=${vars_path}" \
+    -drive "if=none,id=system,format=qcow2,file=${disk_path},discard=unmap" \
+    -device virtio-blk-pci,drive=system \
+    -device virtio-gpu-pci \
+    -device "virtio-sound-pci,audiodev=audio0" \
+    -nic "user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:${ssh_port}-:22" \
+    "${media[@]}" \
+    "${audio[@]}" \
+    "${display[@]}"
+}
+
+case "${1:-}" in
+  fetch)
+    if [[ -e "${iso_path}" ]]; then
+      verify_iso
+      echo "Verified existing installer: ${iso_path}"
+      exit 0
+    fi
+    tmp_path="${iso_path}.partial"
+    curl --fail --location --output "${tmp_path}" "${iso_url}"
+    mv "${tmp_path}" "${iso_path}"
+    verify_iso
+    echo "Downloaded and verified: ${iso_path}"
+    ;;
+  create)
+    require_qemu
+    if [[ -e "${disk_path}" ]]; then
+      echo "Refusing to overwrite existing VM disk: ${disk_path}" >&2
+      exit 1
+    fi
+    "${qemu_img}" create -f qcow2 "${disk_path}" "${disk_size}"
+    ensure_vars "$(qemu_share_dir)/edk2-arm-vars.fd"
+    echo "Created ${disk_path} (${disk_size})"
+    ;;
+  install)
+    run_qemu install
+    ;;
+  boot)
+    run_qemu boot
+    ;;
+  *)
+    usage >&2
+    exit 2
+    ;;
+esac

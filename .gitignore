@@ -7,4 +7,6 @@ result-*
 *.img.zst
 *.qcow2
 *.iso
+*.iso.partial
+*.fd
 *.log
