@@ -21,3 +21,9 @@ No historical Asahi workaround is enabled preemptively. Internal display,
 GPU acceleration, keyboard, trackpad, Wi-Fi, Bluetooth, audio, brightness,
 suspend/resume, and the workstation profile require physical M2 acceptance
 before support is claimed.
+
+For the non-destructive macOS-hosted QEMU development VM and the separate
+Apple-silicon live USB image, including the mandatory one-time Asahi UEFI
+bootstrap and artifact checks, see [macos.md](macos.md). The generic VM proof
+and verified USB EFI-menu startup do not substitute for physical Asahi
+acceptance.

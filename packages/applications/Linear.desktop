@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Linear
+Comment=Plan and build products in Linear
+Exec=omarchy-launch-webapp https://linear.app
+Terminal=false
+Type=Application
+Icon=chromium
+Categories=Office;ProjectManagement;
+StartupNotify=true

@@ -86,6 +86,25 @@ Run `sudo ./scripts/verify-macos-vm` inside a repository checkout to check the
 booted system, graphical session, bar, shell IPC, notification IPC, and pinned
 Omarchy version.
 
+### Recorded VM result
+
+On 2026-08-16, using OmixOS commit `749d451` (tree
+`1121e2712d2a992e54410c2734a99ebf07b795af`), the clean install above
+completed from the pinned official NixOS 26.05 AArch64 ISO. The guest booted
+from disk alone, applied the final
+`macos-vm` generation, rebooted again, and passed `verify-macos-vm`: no failed
+units; greetd, NetworkManager, D-Bus, SSH, Hyprland, Wayland, monitor, bar,
+shell, notifications, Docker, and `/dev/dri/card0` plus `renderD128` were
+healthy. The verified Omarchy revision was
+`30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec`.
+
+The final reproducible image is a 10,928,783,360-byte qcow2 with a 128 GiB
+virtual size and SHA-256
+`10391573b82d6be7bfc257c283aa4fbab72abe6bbeb2e3f7cfecc3b60102067b`.
+`qemu-img check` passed, and an EDK2/HVF boot from a disposable overlay reached
+the full graphical desktop. Temporary builder credentials were removed or
+locked before the image was trimmed and powered off.
+
 ## Apple-silicon live USB
 
 Build the live image on an AArch64 NixOS machine (the OmixOS VM can do this):
@@ -140,6 +159,14 @@ U-Boot autoboot and put `usb 0` first with `eficonfig`.
 The live USB can be built and structurally verified in a VM, but display,
 keyboard, trackpad, Wi-Fi, audio, suspend, and an actual USB boot remain physical
 acceptance checks on the target MacBook Pro.
+
+The 2026-08-16 artifact from commit `749d451` was 2,751,907,840 bytes with SHA-256
+`bd68f72e95f4b56cdaf93b73bccefecc293137cff988ea93a15a5ce5c8951a6e`.
+Verification found the `OMIXOS_USB` label, `BOOTAA64.EFI`, GRUB configuration,
+EFI image, SquashFS, and version metadata, and EDK2/QEMU reached the graphical
+UEFI CD-ROM menu. This does not claim physical Apple-driver or external-USB
+boot; those still require the one-time internal Asahi UEFI environment and a
+separately authorized removable target.
 
 After copying both outputs to macOS, verify qcow2 integrity, its 128 GiB virtual
 size, the ISO filesystem, and the standard AArch64 EFI loader with:

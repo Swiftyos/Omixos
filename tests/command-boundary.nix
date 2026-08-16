@@ -26,11 +26,12 @@ pkgs.runCommand "omarchy-command-boundary"
   ''
     shellcheck ${../packages/overrides}/*
 
-    # The source pin contains 425 command entry points. Keep that entire
-    # surface wrapped and fail if a preserved/adapted command regains a direct
+    # The source pin contains 425 command entry points. The curated profile
+    # deliberately removes the HEY mail handler, exposing 424. Fail if any
+    # other command disappears or a preserved/adapted command regains a direct
     # Arch package, AUR, initramfs, or Limine mutation path.
-    test "$(find ${runtime}/share/omarchy/bin -maxdepth 1 -type f -name 'omarchy*' | wc -l)" -eq 425
-    test "$(find ${runtime}/bin -maxdepth 1 -type f -name 'omarchy*' | wc -l)" -eq 425
+    test "$(find ${runtime}/share/omarchy/bin -maxdepth 1 -type f -name 'omarchy*' | wc -l)" -eq 424
+    test "$(find ${runtime}/bin -maxdepth 1 -type f -name 'omarchy*' | wc -l)" -eq 424
     test "$(rg -l 'is disabled on OmixOS' ${runtime}/share/omarchy/bin/omarchy* | wc -l)" -eq 131
     if rg -n \
       '(^|[;&|[:space:]])(sudo[[:space:]]+)?(pacman[[:space:]]+-[SRU]|yay([[:space:]]|$)|paru([[:space:]]|$)|mkinitcpio([[:space:]]|$)|limine([[:space:]]|$))' \
@@ -63,6 +64,13 @@ pkgs.runCommand "omarchy-command-boundary"
       "not running inside a NixOS system generation"
     ${runtime}/bin/omarchy-theme-set-browser
     test -f ${runtime}/share/applications/foot.desktop
+    test -f ${runtime}/share/applications/Linear.desktop
+    test -f ${runtime}/share/applications/Slack.desktop
+    test ! -e ${runtime}/share/applications/Basecamp.desktop
+    test ! -e ${runtime}/share/applications/HEY.desktop
+    test ! -e ${runtime}/share/omarchy/bin/omarchy-webapp-handler-hey
+    ! grep -Fq 'app.hey.com' ${runtime}/share/omarchy/default/hypr/bindings/applications.lua
+    grep -Fxq 'x-scheme-handler/mailto=chromium-browser.desktop' ${runtime}/share/omarchy/default/applications/mimeapps.list
     test -f ${runtime}/share/icons/hicolor/256x256/apps/disk-usage.png
     OMIXOS_DEBUG_LOG="$TMPDIR/omixos-debug.log" ${runtime}/bin/omarchy-debug --no-sudo --print |
       grep -F "OmixOS diagnostics"

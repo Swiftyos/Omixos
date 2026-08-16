@@ -15,9 +15,9 @@ services/session      writable state seeding
      +-----------+------------+
                  |
        shared Omarchy desktop
-          /       |       \
- dev ARM VM     Pi 4      M2/Asahi
- generic       VC4/RPi    Apple hardware
+       /       /      \          \
+ dev ARM VM  macOS VM  Pi 4    M2/Asahi + USB
+ generic     virtio    VC4/RPi  Apple hardware
 ```
 
 ## Immutable runtime
@@ -50,13 +50,17 @@ keyring, PAM, network, Bluetooth, audio, portal, and power services.
 ## Hardware layers
 
 `hosts/pi4` imports maintained Raspberry Pi 4 base, VC4 display, and Bluetooth
-modules. `hosts/m2` imports the maintained Apple Silicon module. Neither
-hardware policy appears in the shared module, and `aarch64-linux` is never
-treated as synonymous with a particular board.
+modules. `hosts/m2` imports the maintained Apple Silicon module, while
+`hosts/apple-silicon-usb` layers the same desktop onto its live installer.
+`hosts/macos-vm` is a generic virtio/EFI guest and carries no Apple hardware
+policy. None of these hardware decisions appears in the shared module, and
+`aarch64-linux` is never treated as synonymous with a particular board.
 
 ## Profiles
 
-`core` contains the compositor, Quickshell, terminal, browser, file manager,
-clipboard/screenshot/audio/network tools, fonts, and runtime. `workstation`
-adds development and larger GUI/TUI tools. Optional features are independent
-flags so an unavailable proprietary application cannot break the ARM desktop.
+`core` contains the compositor, Quickshell, Ghostty (with Foot fallback),
+Chromium, Nautilus, Neovim, GTK launcher support, clipboard/screenshot/audio/
+network tools, fonts, and runtime. It exposes Linear and Slack as browser apps
+while excluding Basecamp and HEY. `workstation` adds development and larger
+GUI/TUI tools. Optional features are independent flags so an unavailable
+proprietary application cannot break the ARM desktop.

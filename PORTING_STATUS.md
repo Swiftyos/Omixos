@@ -5,10 +5,10 @@ generic graphical testing, and physical testing are intentionally distinct.
 
 ## Upstream baseline
 
-- [x] Source repository, remote, branch, SHA, and cleanliness recorded
+- [x] Source repository, remote, branch, SHA, and tracked-tree status recorded
 - [x] Contributor and architecture/theming/testing/update documentation read
-- [x] Quattro shell, command, package, and Hyprland inventory started
-- [x] Upstream clone left clean and unmodified
+- [x] Quattro shell, complete command surface, package, and Hyprland inventory recorded
+- [x] Upstream tracked tree left unmodified; untracked macOS metadata preserved
 
 ## Flake
 
@@ -32,22 +32,22 @@ generic graphical testing, and physical testing are intentionally distinct.
 - [x] Official quattro Quickshell revision identified and pinned exactly
 - [x] Package revision/source compatibility recorded
 - [x] Exact pinned Quickshell and shell wrapper build on `aarch64-linux`
-- [ ] Shell starts and remains running in ARM VM
-- [ ] Bar/menu/notifications/IPC verified
+- [x] Shell starts and remains running in graphical ARM VM
+- [x] Bar/menu/notifications/IPC verified in graphical ARM VM
 
 ## Hyprland
 
 - [x] Shared Hyprland/UWSM/portal module implemented
 - [x] Upstream Lua config seeded as writable user configuration
 - [x] Lua config parses with the pinned Hyprland (`config ok`)
-- [ ] Generic ARM graphical session verified
+- [x] Generic ARM graphical session verified under AArch64 QEMU TCG
 
 ## Themes
 
 - [x] Immutable built-ins plus writable user overlay/state design implemented
 - [x] Seed-only activation implemented
 - [x] Headless Tokyo Night activation check passes
-- [ ] Live theme/background reload verified
+- [x] Live theme/background switch and shell continuity verified
 
 ## CLI
 
@@ -56,23 +56,25 @@ generic graphical testing, and physical testing are intentionally distinct.
 - [x] Pacman/AUR/system-mutating paths disabled
 - [x] Command-boundary/ShellCheck test passes on native ARM64
 - [x] NixOS-aware browser/desktop-entry and diagnostic wrappers implemented
-- [ ] Core CLI behavior verified in ARM session
-- [ ] Full important-command inventory completed
+- [x] Core CLI behavior verified in ARM system and graphical sessions
+- [x] All 425 quattro source commands inventoried; 424 exposed after the intentional HEY handler removal
+- [x] Exact 131-command disabled boundary and Arch-mutation scan enforced
 
 ## Core applications
 
-- [x] Terminal, Chromium, Nautilus, clipboard, screenshot, audio/network tools declared
+- [x] Ghostty default, Foot fallback, Chromium, Nautilus, Neovim, `gtk-launch`, clipboard, screenshot, and audio/network tools declared
+- [x] Linear and Slack web apps installed; Basecamp and functional HEY integrations removed
 - [x] Omarchy icon font packaged and registered
 - [x] Every essential package evaluates on ARM64
-- [ ] Terminal/browser/file manager launch verified
-- [ ] Clipboard/screenshots/audio controls verified
+- [x] Terminal/browser/file manager launch verified as mapped Wayland clients, including direct `gtk-launch` for Linear
+- [x] Clipboard, PNG screenshot, and PipeWire control paths verified
 
 ## Dev VM
 
 - [x] Generic AArch64 host declared with no Pi/Asahi hardware policy
 - [x] System closure builds on native ARM64
 - [x] Headless NixOS system VM smoke test passes under QEMU TCG
-- [ ] VM boot and desktop acceptance completed
+- [x] VM boot and generic ARM desktop acceptance completed
 
 ## Pi image
 
@@ -93,6 +95,9 @@ generic graphical testing, and physical testing are intentionally distinct.
 
 - [x] Separate Asahi host imports the same shared desktop
 - [x] Configuration evaluates with locked hardware input
+- [x] Generic macOS/HVF AArch64 VM clean-install, disk-only reboot, and graphical acceptance passed
+- [x] Reproducible qcow2 integrity and graphical boot verified
+- [x] Apple-silicon USB ISO structure and AArch64 EFI boot menu verified
 - [ ] Physical M2 acceptance completed
 
 ## Deferred
@@ -104,5 +109,5 @@ generic graphical testing, and physical testing are intentionally distinct.
 
 ## Known blockers
 
-- No physical Pi 4 or bare-metal M2 is connected to this work session.
-- Physical support claims therefore remain blocked after software build checks.
+- Physical Pi 4 and bare-metal M2 acceptance have not been run.
+- Physical support claims therefore remain open after software/VM build checks.

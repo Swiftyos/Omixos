@@ -12,7 +12,7 @@ Inspected on **2026-08-16**.
 | Commit date | `2026-08-16T04:51:30-07:00` |
 | Commit subject | `Update tokyo-night winding-road background (#7057)` |
 | Ahead/behind | `+0 / -0` |
-| Dirty status | Clean |
+| Worktree status | Tracked tree clean; untracked `.DS_Store` metadata present |
 | First OmixOS commit targeting it | `40367f0ed0c66bdb4f334eed506d025b29f41665` |
 
 The flake's `omarchy-src` input pins this exact commit. A sibling path is used
@@ -55,4 +55,5 @@ tree, branch, and commit remain unchanged; OmixOS never edits that source tree.
 - The Arch update/package/install/migration stack is not portable and must be
   replaced by NixOS generations or made explicitly unavailable.
 
-The upstream clone is treated as read-only and remained clean after discovery.
+The upstream clone is treated as read-only and its tracked tree remained
+unchanged after discovery.

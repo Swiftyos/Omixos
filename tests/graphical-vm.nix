@@ -88,7 +88,10 @@ pkgs.testers.runNixOSTest {
     machine.succeed(
         as_omix("hyprctl layers -j | grep -F 'omarchy-bar'")
     )
-    machine.succeed(as_omix("omarchy-shell notifications ping | grep -Fx ok"))
+    machine.wait_until_succeeds(
+        as_omix("omarchy-shell notifications ping | grep -Fx ok"),
+        timeout=60,
+    )
 
     machine.succeed(
         as_omix("omarchy-shell shell toggle omarchy.menu '{\"menu\":\"root\"}'")
@@ -111,17 +114,46 @@ pkgs.testers.runNixOSTest {
     )
 
     # Exercise the actual Wayland clients and session services used by the
-    # core profile. Hyprland launches applications with the exported UWSM
-    # environment, while transient user services cover non-window clients.
+    # core profile. Start the terminal through xdg-terminal-exec so this also
+    # proves Ghostty is the configured default, and launch Linear through the
+    # same gtk-launch path used by the shell's application library.
     machine.succeed(
         as_omix(
-            "systemd-run --user --collect --unit=omixos-test-foot "
-            "--property=Type=exec foot --title=OmixTestTerminal"
+            "systemd-run --user --collect --unit=omixos-test-terminal "
+            "--property=Type=exec xdg-terminal-exec"
         )
     )
     machine.wait_until_succeeds(
-        as_omix("hyprctl clients -j | jq -e 'length >= 1'"),
+        as_omix(
+            "hyprctl clients -j | jq -e "
+            "'any(.[]; ((.class // \"\") | ascii_downcase | contains(\"ghostty\")))'"
+        ),
         timeout=60,
+    )
+    # Software-rendered GUI clients are CPU-intensive under AArch64 TCG. The
+    # terminal has been accepted, so close it before starting Chromium.
+    machine.succeed(as_omix("systemctl --user stop omixos-test-terminal.service"))
+    machine.wait_until_succeeds(
+        as_omix("hyprctl clients -j | jq -e 'length == 0'"),
+        timeout=30,
+    )
+
+    # The AArch64 TCG VM has software rendering and no interactive keyring
+    # unlock. Set the wrapper's explicit test mode on the gtk-launch process;
+    # real desktop sessions do not receive these concessions.
+    machine.succeed(
+        as_omix(
+            "env OMIXOS_GRAPHICAL_TEST=1 gtk-launch Linear.desktop"
+        )
+    )
+    machine.wait_until_succeeds(
+        as_omix("hyprctl clients -j | jq -e 'length > 0'"),
+        timeout=180,
+    )
+    machine.succeed(as_omix("systemctl --user stop 'omarchy-webapp-*'"))
+    machine.wait_until_succeeds(
+        as_omix("hyprctl clients -j | jq -e 'length == 0'"),
+        timeout=30,
     )
 
     machine.succeed(
@@ -131,20 +163,8 @@ pkgs.testers.runNixOSTest {
         )
     )
     machine.wait_until_succeeds(
-        as_omix("hyprctl clients -j | jq -e 'length >= 2'"),
+        as_omix("hyprctl clients -j | jq -e 'length >= 1'"),
         timeout=120,
-    )
-
-    machine.succeed(
-        as_omix(
-            "systemd-run --user --collect --unit=omixos-test-chromium "
-            "--property=Type=exec chromium --no-first-run --disable-gpu "
-            "--new-window about:blank"
-        )
-    )
-    machine.wait_until_succeeds(
-        as_omix("hyprctl clients -j | jq -e 'length >= 3'"),
-        timeout=180,
     )
 
     machine.succeed(

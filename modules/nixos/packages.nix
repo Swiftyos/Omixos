@@ -23,11 +23,13 @@ let
       file
       findutils
       foot
+      ghostty
       gum
       gawk
       git
       glib
       grim
+      gtk3
       hyprpicker
       hyprsunset
       imagemagick
@@ -38,6 +40,7 @@ let
       libxkbcommon
       libnotify
       nautilus
+      neovim
       networkmanager
       pamixer
       perl
@@ -67,7 +70,6 @@ let
     fzf
     lazygit
     mpv
-    neovim
     tmux
     tree
     unzip

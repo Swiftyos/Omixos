@@ -41,6 +41,7 @@ in
         "text/html" = [ "chromium-browser.desktop" ];
         "x-scheme-handler/http" = [ "chromium-browser.desktop" ];
         "x-scheme-handler/https" = [ "chromium-browser.desktop" ];
+        "x-scheme-handler/mailto" = [ "chromium-browser.desktop" ];
       };
     };
 
@@ -123,13 +124,19 @@ in
         "$HOME/.config/omarchy/backgrounds" \
         "$HOME/.config/uwsm/env.d" \
         "$HOME/.local/state/omarchy/current" \
+        "$HOME/.local/state/omarchy/migrations" \
         "$HOME/.local/state/omarchy/toggles/hypr" \
         "$HOME/.local/share/applications"
 
       seed_path ${omarchyPath}/default/uwsm/default "$HOME/.config/uwsm/default"
       seed_path ${omarchyPath}/default/uwsm/env.d/10-omarchy "$HOME/.config/uwsm/env.d/10-omarchy"
-      if [[ ! -e "$HOME/.config/xdg-terminals.list" ]]; then
-        printf '%s\n' foot.desktop > "$HOME/.config/xdg-terminals.list"
+      terminal_preference="$HOME/.config/xdg-terminals.list"
+      terminal_migration="$HOME/.local/state/omarchy/migrations/default-terminal-ghostty-v1"
+      if [[ ! -e "$terminal_migration" ]]; then
+        if [[ ! -e "$terminal_preference" ]] || [[ "$(cat "$terminal_preference")" == foot.desktop ]]; then
+          printf '%s\n' com.mitchellh.ghostty.desktop > "$terminal_preference"
+        fi
+        touch "$terminal_migration"
       fi
 
       while IFS= read -r -d "" source_path; do
@@ -139,6 +146,21 @@ in
       while IFS= read -r -d "" source_path; do
         seed_path "$source_path" "$HOME/.local/share/applications/$(basename "$source_path")"
       done < <(find ${omarchyPath}/applications -maxdepth 1 -type f -name "*.desktop" -print0)
+
+      application_migration="$HOME/.local/state/omarchy/migrations/application-profile-v1"
+      if [[ ! -e "$application_migration" ]]; then
+        basecamp_launcher="$HOME/.local/share/applications/Basecamp.desktop"
+        hey_launcher="$HOME/.local/share/applications/HEY.desktop"
+        if [[ -f "$basecamp_launcher" ]] && grep -Fq \
+          'Exec=omarchy-launch-webapp https://launchpad.37signals.com' "$basecamp_launcher"; then
+          rm -f "$basecamp_launcher"
+        fi
+        if [[ -f "$hey_launcher" ]] && grep -Fq \
+          'Exec=omarchy-webapp-handler-hey %u' "$hey_launcher"; then
+          rm -f "$hey_launcher"
+        fi
+        touch "$application_migration"
+      fi
 
       while IFS= read -r -d "" source_path; do
         seed_path "$source_path" "$HOME/.local/state/omarchy/toggles/hypr/$(basename "$source_path")"

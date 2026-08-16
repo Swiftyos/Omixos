@@ -81,6 +81,18 @@ stdenvNoCC.mkDerivation {
       cp -R "$src/$tree" "$runtime/$tree"
     done
 
+    # Curate the installed web-app profile independently of the upstream
+    # repository. OmixOS intentionally omits 37signals launchers and provides
+    # ARM-safe browser applications for Linear and Slack.
+    chmod -R u+w "$runtime/applications"
+    rm -f \
+      "$runtime/applications/Basecamp.desktop" \
+      "$runtime/applications/HEY.desktop" \
+      "$runtime/applications/icons/Basecamp.png" \
+      "$runtime/applications/icons/HEY.png"
+    install -m 0644 ${./applications/Linear.desktop} "$runtime/applications/Linear.desktop"
+    install -m 0644 ${./applications/Slack.desktop} "$runtime/applications/Slack.desktop"
+
     for asset in LICENSE logo.txt logo.svg icon.txt icon.png; do
       if [[ -e "$src/$asset" ]]; then
         cp -R "$src/$asset" "$runtime/$asset"
@@ -89,6 +101,18 @@ stdenvNoCC.mkDerivation {
 
     printf '%s\n' '${upstreamRevision}' > "$runtime/UPSTREAM_REVISION"
     chmod -R u+w "$runtime"
+
+    # Remove the remaining functional HEY integration from the curated
+    # profile: its handler, preinstalled hotkeys, and mailto association.
+    # Upstream attribution and documentation links are intentionally kept.
+    rm -f "$runtime/bin/omarchy-webapp-handler-hey"
+    sed -i '\|webapp = "https://app\.hey\.com|d' \
+      "$runtime/default/hypr/bindings/applications.lua"
+    substituteInPlace "$runtime/default/applications/mimeapps.list" \
+      --replace-fail \
+      'x-scheme-handler/mailto=HEY.desktop' \
+      'x-scheme-handler/mailto=chromium-browser.desktop'
+
     find "$runtime/bin" -type f -exec chmod 0755 {} +
     patchShebangs "$runtime/bin" "$runtime/shell"
 
@@ -159,6 +183,7 @@ stdenvNoCC.mkDerivation {
     install -m 0755 ${./overrides/omarchy-debug} "$runtime/bin/omarchy-debug"
     install -m 0755 ${./overrides/omarchy-default-browser} "$runtime/bin/omarchy-default-browser"
     install -m 0755 ${./overrides/omarchy-launch-browser} "$runtime/bin/omarchy-launch-browser"
+    install -m 0755 ${./overrides/omarchy-launch-webapp} "$runtime/bin/omarchy-launch-webapp"
     install -m 0755 ${./overrides/omarchy-theme-set-browser} "$runtime/bin/omarchy-theme-set-browser"
     install -m 0755 ${./overrides/omarchy-version} "$runtime/bin/omarchy-version"
     install -m 0755 ${./overrides/omarchy-version-channel} "$runtime/bin/omarchy-version-channel"

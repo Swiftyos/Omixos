@@ -185,6 +185,7 @@
           nil
           nixfmt-tree
           shellcheck
+          zstd
         ];
       };
     };

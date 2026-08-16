@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Name=Slack
+Comment=Open Slack in an isolated web-app window
+Exec=omarchy-launch-webapp https://app.slack.com/client
+Terminal=false
+Type=Application
+Icon=chromium
+Categories=Network;InstantMessaging;
+StartupNotify=true

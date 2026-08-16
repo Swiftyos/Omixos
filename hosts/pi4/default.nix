@@ -9,9 +9,11 @@
 let
   # The Pi hardware package set replaces FFmpeg globally with ffmpeg-rpi.
   # Chromium then gets a distinct 57k-action source build even though it does
-  # not require a board-specific browser build. Use the same pinned generic
-  # ARM Chromium as the shared dev host; VC4 and media policy remain owned by
-  # the Pi hardware modules and are verified separately on the real device.
+  # not require a board-specific browser build. Its transitive package changes
+  # also make Ghostty's generated Unicode-table build fail on native ARM.
+  # Reuse the same pinned generic ARM application derivations that pass in the
+  # shared graphical VM; VC4 and media policy remain owned by the Pi hardware
+  # modules and are verified separately on the real device.
   genericPkgs = import inputs.nixpkgs {
     system = "aarch64-linux";
   };
@@ -27,7 +29,7 @@ in
 
   nixpkgs.overlays = [
     (_final: _prev: {
-      inherit (genericPkgs) chromium;
+      inherit (genericPkgs) chromium ghostty;
     })
   ];
 
