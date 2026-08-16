@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# OmixOS updates are pinned by the flake lock rather than Pacman mirror lanes.
+printf '%s\n' nix

@@ -25,6 +25,7 @@ Status values are **portable**, **adapted**, **Nix-native**, **deferred**, and
 | Reboot/shutdown | `omarchy-system-*` | portable | systemd/logind | Packaged; physical test pending |
 | `omarchy update` and `omarchy-update-*` | `bin/` | Nix-native | Prints flake/generation workflow; never runs Pacman | Implemented; output test pending |
 | `omarchy-version` | `bin/omarchy-version` | Nix-native | Reports quattro source SHA | Implemented in runtime smoke |
+| Version channel/package age | `omarchy-version-channel`, `omarchy-version-pkgs` | Nix-native | Reports the Nix channel model and current generation build time | Implemented; command test |
 | Package queries | `omarchy-pkg-present/missing` | adapted | Best-effort executable presence, no package DB mutation | Implemented; imperfect for package-only names |
 | Package install/remove and AUR | `omarchy-pkg-*`, `omarchy-install-*` | unsupported | Disabled; configure Nix packages declaratively | Safe stub packaged |
 | Channels | `omarchy-channel-*` | unsupported | Flake lock replaces Pacman channels | Safe stub packaged |
@@ -32,6 +33,7 @@ Status values are **portable**, **adapted**, **Nix-native**, **deferred**, and
 | Arch system provisioning | `omarchy-apply-*`, `omarchy-provision-*` | Nix-native | NixOS/Home Manager modules and activation seed | Arch paths disabled |
 | Limine/Plymouth/SDDM refresh | `omarchy-refresh-*` | unsupported initially | Hardware host and greetd own boot/login | Safe stub packaged |
 | Hibernation and hardware mutation | setup/toggle/hardware commands | deferred | Must be target modules after physical reproduction | Mutating paths disabled |
+| Browser chrome retint | `omarchy-theme-set-browser` | deferred | Upstream mutates root-owned `/etc` Chromium policy; NixOS hook is a safe no-op | Shell/theme switching continues; browser chrome parity pending |
 | Gaming/Windows VM | install/remove/VM commands | deferred | v0.1 non-goal; ARM availability varies | Disabled |
 | Diagnostics | `omarchy-debug` | Nix-native | Local system/kernel/Hyprland/service/graphics/audio/network report | ARM command test passes; never uploads automatically |
 

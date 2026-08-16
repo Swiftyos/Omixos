@@ -6,6 +6,11 @@
 pkgs.testers.runNixOSTest {
   name = "omixos-system-smoke";
 
+  # The ARM development VM and common Docker builders have no nested KVM.
+  # QEMU's aarch64 machine falls back to TCG, so keep the NixOS-test feature
+  # gate while allowing this smoke boot to run without /dev/kvm.
+  requiredFeatures.kvm = false;
+
   nodes.machine =
     { lib, ... }:
     {
@@ -35,8 +40,10 @@ pkgs.testers.runNixOSTest {
 
     machine.succeed("systemctl is-active NetworkManager.service")
     machine.succeed("systemctl is-active dbus.service")
-    machine.succeed("systemctl is-active polkit.service")
-    machine.succeed("systemctl is-active upower.service")
+    machine.succeed("busctl call org.freedesktop.PolicyKit1 /org/freedesktop/PolicyKit1/Authority org.freedesktop.DBus.Peer Ping")
+    machine.wait_for_unit("polkit.service")
+    machine.succeed("busctl call org.freedesktop.UPower /org/freedesktop/UPower org.freedesktop.DBus.Peer Ping")
+    machine.wait_for_unit("upower.service")
 
     machine.succeed("test -x /run/current-system/sw/bin/Hyprland")
     machine.succeed("test -x /run/current-system/sw/bin/quickshell")

@@ -9,6 +9,7 @@ let
     "omarchy-pkg-add"
     "omarchy-plymouth-set"
     "omarchy-reinstall"
+    "omarchy-restart-trackpad"
     "omarchy-system-factory-reset-finish"
     "omarchy-voxtype-install"
   ];
@@ -42,6 +43,10 @@ pkgs.runCommand "omarchy-command-boundary"
     test "$update_available" = "OmixOS is pinned by flake.lock"
     test "$(${runtime}/bin/omarchy-version)" = \
       "quattro-nixos (30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec)"
+    test "$(${runtime}/bin/omarchy-version-channel)" = "nix"
+    test "$(${runtime}/bin/omarchy-version-pkgs)" = \
+      "not running inside a NixOS system generation"
+    ${runtime}/bin/omarchy-theme-set-browser
     test -f ${runtime}/share/applications/foot.desktop
     test -f ${runtime}/share/icons/hicolor/256x256/apps/disk-usage.png
     OMIXOS_DEBUG_LOG="$TMPDIR/omixos-debug.log" ${runtime}/bin/omarchy-debug --no-sudo --print |

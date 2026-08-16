@@ -11,10 +11,11 @@ Waybar/Wofi desktop and does not emulate Pacman or AUR.
 
 ## Status
 
-The reproducible module/package foundation is under active implementation.
-Evaluation and package results are tracked in [PORTING_STATUS.md](PORTING_STATUS.md),
-and unverified hardware behavior is called out in [docs/known-gaps.md](docs/known-gaps.md).
-No physical Pi 4 or M2 support claim is made until its acceptance list is run.
+The software implementation and native ARM build verification are complete,
+including a headless system test and flashable Pi image. Results are tracked in
+[PORTING_STATUS.md](PORTING_STATUS.md), and unverified hardware behavior is
+called out in [docs/known-gaps.md](docs/known-gaps.md). No physical Pi 4 or M2
+support claim is made until its acceptance list is run.
 
 ## Development
 

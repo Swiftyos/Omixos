@@ -5,7 +5,7 @@
 Run on native `aarch64-linux`:
 
 ```bash
-nix fmt -- --check
+nix fmt -- --ci
 nix flake check
 nix build .#checks.aarch64-linux.command-boundary
 nix build .#checks.aarch64-linux.hyprland-config
@@ -22,17 +22,27 @@ version command, and a headless Tokyo Night theme activation into writable
 state. `command-boundary` lints port wrappers and executes representative safe
 failures, Python helpers, diagnostics, icons, and Nix-native update behavior.
 `hyprland-config` asks the exact packaged Hyprland to parse the seeded Lua
-configuration. `system-smoke-vm` is an optional nested-QEMU headless boot test;
-normal development does not depend on nested virtualization. `nix flake check`
-also evaluates all three `nixosConfigurations`.
+configuration. `system-smoke-vm` boots AArch64 NixOS under QEMU TCG, activates
+the D-Bus services, and verifies the runtime, writable seed state, desktop
+defaults, command boundary, and enabled user units without requiring nested
+KVM. `nix flake check` also evaluates all three `nixosConfigurations`.
 
 Native ARM results recorded on 2026-08-16:
 
-- full package/check build passed for the runtime, font, exact Quickshell,
-  headless theme activation, command boundary, and Hyprland Lua parser;
+- full `nix flake check` passed, including the runtime, font, exact Quickshell,
+  headless theme activation, command boundary, Hyprland Lua parser, and
+  AArch64 system VM boot test;
 - `dev-aarch64` and `pi4` system closures built successfully;
 - `dev-aarch64`, `pi4`, and `m2` evaluated from the locked inputs;
-- physical/graphical and compressed-image results remain separately tracked in
+- the Pi image built as a 3,181,608,784-byte zstd artifact with uncompressed
+  size 9,486,565,376 bytes and SHA-256
+  `6494880d2a5265e248ad911a58fd3b7b6182a0510d2a5becef0a2eee510d7e2d`;
+- `zstd -t`, MBR inspection, the 1 GiB FAT32 firmware partition, the 7.8 GiB
+  Linux partition, firmware/device-tree/U-Boot installation, and FAT fsck
+  passed;
+- image sudoers inspection confirmed ordinary wheel access requires a password
+  and only `omixos-set-initial-password` has its narrow `NOPASSWD` rule;
+- physical and graphical results remain separately tracked in
   `PORTING_STATUS.md`.
 
 ## Generic ARM graphical acceptance

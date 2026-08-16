@@ -12,7 +12,7 @@ marked verified after Nix evaluates or builds it on `aarch64-linux`.
 | `xdg-desktop-portal-hyprland` | Hyprland portal module | core portable | Portals/screen sharing | ARM build passed; live sharing pending |
 | `xdg-desktop-portal-gtk` | `pkgs.xdg-desktop-portal-gtk` | core portable | GTK portal fallback | ARM build passed; live picker pending |
 | `foot` | `pkgs.foot` | core portable | Default terminal | ARM closure passed; launch pending |
-| `chromium` | `pkgs.chromium` | core portable | Default browser | ARM evaluation passed; configured caches missed the locked build, so native source build was required |
+| `chromium` | pinned generic `pkgs.chromium` | core portable | Default browser | Native ARM build passed; Pi reuses the generic ARM derivation instead of inheriting the hardware flake's unrelated FFmpeg override |
 | `nautilus` | `pkgs.nautilus` | core portable | File manager | ARM build passed; launch pending |
 | `gum`, `wtype` | same-named Nixpkgs attributes | core portable | Writable plugin/theme prompts and text injection | ARM evaluation passed |
 | `wl-clipboard` | `pkgs.wl-clipboard` | core portable | Clipboard/history | ARM closure passed; live test pending |
@@ -36,7 +36,7 @@ marked verified after Nix evaluates or builds it on `aarch64-linux`.
 | Obsidian/Zoom/Discord/vendor apps | varies | proprietary/vendor | None | Deferred; many are x86-only |
 | Pacman/Yay/ALPM hooks | none | Arch-specific | None | Intentionally not ported |
 | Limine/mkinitcpio/Snapper integration | target NixOS boot/generations | Arch-specific replacement | Rollback | Replaced by target hardware modules/generations |
-| Pi kernel/firmware/VC4/Bluetooth | `nixos-raspberrypi` modules | hardware-specific | Required Pi | BCM2711 kernel, firmware, U-Boot, and host closure build passed; image/physical test pending |
+| Pi kernel/firmware/VC4/Bluetooth | `nixos-raspberrypi` modules | hardware-specific | Required Pi | BCM2711 kernel, firmware, U-Boot, host closure, and compressed image build passed; physical test pending |
 | Asahi kernel/firmware/GPU | `nixos-apple-silicon` module | hardware-specific | Secondary target | Locked module evaluation passed; physical test pending |
 
 Optional packages use platform availability filtering; essential core packages

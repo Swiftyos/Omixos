@@ -71,7 +71,7 @@ generic graphical testing, and physical testing are intentionally distinct.
 
 - [x] Generic AArch64 host declared with no Pi/Asahi hardware policy
 - [x] System closure builds on native ARM64
-- [ ] Headless NixOS system VM smoke test passes
+- [x] Headless NixOS system VM smoke test passes under QEMU TCG
 - [ ] VM boot and desktop acceptance completed
 
 ## Pi image
@@ -79,7 +79,7 @@ generic graphical testing, and physical testing are intentionally distinct.
 - [x] Pi 4 base/VC4/Bluetooth hardware boundary declared
 - [x] Flashable image output exposed
 - [x] Pi system closure builds with the maintained BCM2711 kernel
-- [ ] Pi image builds
+- [x] Compressed Pi image builds and passes integrity/partition inspection
 
 ## Pi physical
 

@@ -1,10 +1,21 @@
 {
   config,
+  inputs,
   lib,
   nixos-raspberrypi,
   ...
 }:
 
+let
+  # The Pi hardware package set replaces FFmpeg globally with ffmpeg-rpi.
+  # Chromium then gets a distinct 57k-action source build even though it does
+  # not require a board-specific browser build. Use the same pinned generic
+  # ARM Chromium as the shared dev host; VC4 and media policy remain owned by
+  # the Pi hardware modules and are verified separately on the real device.
+  genericPkgs = import inputs.nixpkgs {
+    system = "aarch64-linux";
+  };
+in
 {
   imports = with nixos-raspberrypi.nixosModules; [
     raspberry-pi-4.base
@@ -13,6 +24,12 @@
   ];
 
   networking.hostName = "omixos-pi4";
+
+  nixpkgs.overlays = [
+    (_final: _prev: {
+      inherit (genericPkgs) chromium;
+    })
+  ];
 
   fileSystems."/" = {
     device = lib.mkDefault "/dev/disk/by-label/nixos";

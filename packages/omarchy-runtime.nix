@@ -131,6 +131,7 @@ stdenvNoCC.mkDerivation {
       "$runtime/bin"/omarchy-sudo-* \
       "$runtime/bin"/omarchy-system-factory-reset \
       "$runtime/bin"/omarchy-system-factory-reset-finish \
+      "$runtime/bin"/omarchy-restart-trackpad \
       "$runtime/bin"/omarchy-toggle-hybrid-gpu \
       "$runtime/bin"/omarchy-update* \
       "$runtime/bin"/omarchy-upgrade-to-quattro \
@@ -149,7 +150,10 @@ stdenvNoCC.mkDerivation {
     install -m 0755 ${./overrides/omarchy-debug} "$runtime/bin/omarchy-debug"
     install -m 0755 ${./overrides/omarchy-default-browser} "$runtime/bin/omarchy-default-browser"
     install -m 0755 ${./overrides/omarchy-launch-browser} "$runtime/bin/omarchy-launch-browser"
+    install -m 0755 ${./overrides/omarchy-theme-set-browser} "$runtime/bin/omarchy-theme-set-browser"
     install -m 0755 ${./overrides/omarchy-version} "$runtime/bin/omarchy-version"
+    install -m 0755 ${./overrides/omarchy-version-channel} "$runtime/bin/omarchy-version-channel"
+    install -m 0755 ${./overrides/omarchy-version-pkgs} "$runtime/bin/omarchy-version-pkgs"
 
     mkdir -p "$out/share/applications" "$out/share/icons/hicolor/256x256/apps"
     cp "$runtime"/applications/*.desktop "$out/share/applications/"

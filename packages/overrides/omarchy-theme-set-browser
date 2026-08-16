@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+# Chromium policy directories are declarative, root-owned NixOS state. The
+# upstream hook writes /etc directly, so leave browser chrome unchanged while
+# allowing the rest of a live Omarchy theme switch to complete successfully.
+exit 0

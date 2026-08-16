@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+system_path=/run/current-system
+if [[ -e "$system_path" ]]; then
+  timestamp="$(stat -Lc '%Y' "$system_path")"
+  date -d "@$timestamp" '+%A, %B %d %Y at %H:%M'
+else
+  printf '%s\n' 'not running inside a NixOS system generation'
+fi

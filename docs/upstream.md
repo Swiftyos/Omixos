@@ -13,10 +13,13 @@ Inspected on **2026-08-16**.
 | Commit subject | `Update tokyo-night winding-road background (#7057)` |
 | Ahead/behind | `+0 / -0` |
 | Dirty status | Clean |
-| First OmixOS commit targeting it | Pending until the baseline commit is created |
+| First OmixOS commit targeting it | `40367f0ed0c66bdb4f334eed506d025b29f41665` |
 
 The flake's `omarchy-src` input pins this exact commit. A sibling path is used
 only with an explicit development `--override-input`.
+
+Finder later created untracked `.DS_Store` files in the checkout. Its tracked
+tree, branch, and commit remain unchanged; OmixOS never edits that source tree.
 
 ## Source inspected
 
