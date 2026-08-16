@@ -1,0 +1,75 @@
+#!/bin/bash
+
+set -euo pipefail
+
+if [[ ${1:-} == "--install" ]]; then
+  shift
+fi
+
+if (( $# == 0 )); then
+  desktop_id="$(env -u BROWSER xdg-settings get default-web-browser 2>/dev/null || true)"
+  case "$desktop_id" in
+    chromium-browser.desktop | chromium.desktop) echo "chromium" ;;
+    google-chrome.desktop) echo "chrome" ;;
+    brave-browser.desktop) echo "brave" ;;
+    brave-origin.desktop) echo "brave-origin" ;;
+    microsoft-edge.desktop) echo "edge" ;;
+    firefox.desktop) echo "firefox" ;;
+    zen.desktop) echo "zen" ;;
+    *) echo "$desktop_id" ;;
+  esac
+  exit 0
+fi
+
+case "$1" in
+  chromium)
+    command_name="chromium"
+    desktop_id="chromium-browser.desktop"
+    name="Chromium"
+    ;;
+  chrome)
+    command_name="google-chrome-stable"
+    desktop_id="google-chrome.desktop"
+    name="Chrome"
+    ;;
+  brave)
+    command_name="brave"
+    desktop_id="brave-browser.desktop"
+    name="Brave"
+    ;;
+  brave-origin)
+    command_name="brave-origin"
+    desktop_id="brave-origin.desktop"
+    name="Brave Origin"
+    ;;
+  edge)
+    command_name="microsoft-edge-stable"
+    desktop_id="microsoft-edge.desktop"
+    name="Edge"
+    ;;
+  firefox)
+    command_name="firefox"
+    desktop_id="firefox.desktop"
+    name="Firefox"
+    ;;
+  zen)
+    command_name="zen-browser"
+    desktop_id="zen.desktop"
+    name="Zen"
+    ;;
+  *)
+    echo "Usage: omarchy-default-browser <chromium|chrome|brave|brave-origin|edge|firefox|zen>" >&2
+    exit 1
+    ;;
+esac
+
+if ! command -v "$command_name" >/dev/null 2>&1; then
+  cat >&2 <<EOF
+$name is not installed. Add its Nix package to the host configuration and rebuild.
+Runtime browser installation is disabled on OmixOS.
+EOF
+  exit 2
+fi
+
+env -u BROWSER xdg-settings set default-web-browser "$desktop_id"
+omarchy-notification-send "$name is now the default browser" || true

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -euo pipefail
+
+command_name="$(basename "$0")"
+
+cat >&2 <<EOF
+$command_name is an Arch Linux system-management command and is disabled on OmixOS.
+Use the declarative NixOS configuration and NixOS generations instead.
+See: https://github.com/craig/OmixOS (docs/compatibility.md)
+EOF
+
+exit 2

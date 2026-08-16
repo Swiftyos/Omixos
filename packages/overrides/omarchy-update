@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -euo pipefail
+
+cat <<'EOF'
+OmixOS system updates are NixOS generation updates; the Omarchy Pacman update pipeline is disabled.
+
+From the OmixOS flake checkout, run:
+  nix flake update
+  sudo nixos-rebuild switch --flake .#<host>
+
+For a remote Pi 4, run:
+  sudo nixos-rebuild switch --flake .#pi4 --target-host <user>@<pi-host>
+
+Review docs/pi4.md and docs/compatibility.md before updating.
+EOF

@@ -1,0 +1,10 @@
+result
+result-*
+.DS_Store
+.direnv/
+.envrc.local
+*.img
+*.img.zst
+*.qcow2
+*.iso
+*.log

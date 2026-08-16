@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# The upstream widget checks Arch package channels. OmixOS updates are governed
+# by the pinned flake lock, so no background network or mutable check is made.
+echo "OmixOS is pinned by flake.lock"
+exit 1

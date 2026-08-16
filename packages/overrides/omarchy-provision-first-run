@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Home Manager activation performs idempotent, writable-state seeding.
+exit 0

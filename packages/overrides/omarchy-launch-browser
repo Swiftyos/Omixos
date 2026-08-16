@@ -1,0 +1,64 @@
+#!/bin/bash
+
+set -euo pipefail
+
+desktop_id="$(env -u BROWSER xdg-settings get default-web-browser 2>/dev/null || true)"
+if [[ -z $desktop_id ]]; then
+  desktop_id="$(xdg-mime query default x-scheme-handler/https 2>/dev/null || true)"
+fi
+desktop_id="${desktop_id:-chromium-browser.desktop}"
+
+case "$desktop_id" in
+  chromium-browser.desktop | chromium.desktop) browser_exec="chromium" ;;
+  google-chrome.desktop) browser_exec="google-chrome-stable" ;;
+  brave-browser.desktop) browser_exec="brave" ;;
+  brave-origin.desktop) browser_exec="brave-origin" ;;
+  microsoft-edge.desktop) browser_exec="microsoft-edge-stable" ;;
+  firefox.desktop) browser_exec="firefox" ;;
+  zen.desktop) browser_exec="zen-browser" ;;
+  *)
+    browser_exec=""
+    data_dirs="${XDG_DATA_HOME:-$HOME/.local/share}:${XDG_DATA_DIRS:-$HOME/.nix-profile/share:/run/current-system/sw/share:/nix/var/nix/profiles/default/share}"
+    IFS=: read -r -a search_dirs <<<"$data_dirs"
+    for data_dir in "${search_dirs[@]}"; do
+      desktop_file="$data_dir/applications/$desktop_id"
+      [[ -f $desktop_file ]] || continue
+      browser_exec="$(sed -n 's/^Exec=\([^ ]*\).*/\1/p' "$desktop_file" | head -1)"
+      [[ -n $browser_exec ]] && break
+    done
+    ;;
+esac
+
+if [[ -z $browser_exec ]] || ! command -v "$browser_exec" >/dev/null 2>&1; then
+  echo "Cannot resolve the default browser executable for $desktop_id" >&2
+  exit 1
+fi
+
+if "$browser_exec" --help 2>/dev/null | grep -q MOZ_LOG; then
+  private_flag="--private-window"
+elif [[ $browser_exec == *edge* ]]; then
+  private_flag="--inprivate"
+else
+  private_flag="--incognito"
+fi
+
+arguments=("$@")
+for index in "${!arguments[@]}"; do
+  [[ ${arguments[index]} == "--private" ]] && arguments[index]="$private_flag"
+done
+
+systemd-run --user --quiet --collect --unit="omarchy-browser-$(date +%s%N)" \
+  --property=StandardOutput=null --property=StandardError=null \
+  uwsm-app -- "$browser_exec" "${arguments[@]}"
+
+url=""
+for argument in "$@"; do
+  if [[ $argument != "--private" ]]; then
+    url=$argument
+    break
+  fi
+done
+
+if [[ -n $url && -n ${HYPRLAND_INSTANCE_SIGNATURE:-} ]]; then
+  omarchy-hyprland-focus-app "^$(basename "$browser_exec" -stable).*$" || true
+fi

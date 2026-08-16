@@ -1,0 +1,82 @@
+#!/bin/bash
+
+set -euo pipefail
+
+print_only=false
+while (( $# > 0 )); do
+  case "$1" in
+    --print) print_only=true ;;
+    --no-sudo) ;;
+    *)
+      echo "Usage: omarchy-debug [--no-sudo] [--print]" >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+log_file="${OMIXOS_DEBUG_LOG:-${TMPDIR:-/tmp}/omixos-debug.log}"
+
+run_if_present() {
+  local command_name=$1
+  shift
+  if command -v "$command_name" >/dev/null 2>&1; then
+    "$command_name" "$@" 2>&1 || true
+  else
+    echo "$command_name: unavailable"
+  fi
+}
+
+{
+  echo "OmixOS diagnostics"
+  echo "Date: $(date --iso-8601=seconds)"
+  echo "Hostname: $(hostname)"
+  echo "Omarchy: $(omarchy-version)"
+
+  echo
+  echo "== NixOS and kernel =="
+  run_if_present nixos-version
+  run_if_present uname -a
+
+  echo
+  echo "== Hyprland =="
+  run_if_present hyprctl version
+  run_if_present hyprctl monitors
+
+  echo
+  echo "== Failed units =="
+  run_if_present systemctl --failed --no-pager
+  run_if_present systemctl --user --failed --no-pager
+
+  echo
+  echo "== Graphics devices =="
+  if [[ -d /dev/dri ]]; then
+    ls -l /dev/dri
+  else
+    echo "/dev/dri: unavailable"
+  fi
+
+  echo
+  echo "== Audio =="
+  run_if_present wpctl status
+
+  echo
+  echo "== Network =="
+  run_if_present nmcli device status
+
+  echo
+  echo "== Bluetooth =="
+  run_if_present bluetoothctl show
+
+  echo
+  echo "== Current-boot warnings (last 200) =="
+  run_if_present journalctl -b --priority=warning -n 200 --no-pager
+  run_if_present journalctl --user -b --priority=warning -n 200 --no-pager
+} >"$log_file"
+
+if [[ $print_only == true ]]; then
+  cat "$log_file"
+else
+  echo "Diagnostics saved to $log_file"
+  echo "Nothing was uploaded. Review the file before sharing it."
+fi
