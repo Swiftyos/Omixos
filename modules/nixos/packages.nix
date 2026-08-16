@@ -33,7 +33,9 @@ let
       imagemagick
       imv
       inetutils
+      inotify-tools
       jq
+      libxkbcommon
       libnotify
       nautilus
       networkmanager

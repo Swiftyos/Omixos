@@ -149,6 +149,9 @@
         system-smoke-vm = import ./tests/vm.nix {
           inherit pkgs testModules;
         };
+        graphical-smoke-vm = import ./tests/graphical-vm.nix {
+          inherit pkgs testModules;
+        };
       };
 
       formatter.${system} = pkgs.nixfmt-tree;

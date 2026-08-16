@@ -9,6 +9,7 @@ let
     "omarchy-pkg-add"
     "omarchy-plymouth-set"
     "omarchy-reinstall"
+    "omarchy-remove-launcher-entry"
     "omarchy-restart-trackpad"
     "omarchy-system-factory-reset-finish"
     "omarchy-voxtype-install"
@@ -17,12 +18,26 @@ in
 pkgs.runCommand "omarchy-command-boundary"
   {
     nativeBuildInputs = [
+      pkgs.ripgrep
       pkgs.shellcheck
       runtime
     ];
   }
   ''
     shellcheck ${../packages/overrides}/*
+
+    # The source pin contains 425 command entry points. Keep that entire
+    # surface wrapped and fail if a preserved/adapted command regains a direct
+    # Arch package, AUR, initramfs, or Limine mutation path.
+    test "$(find ${runtime}/share/omarchy/bin -maxdepth 1 -type f -name 'omarchy*' | wc -l)" -eq 425
+    test "$(find ${runtime}/bin -maxdepth 1 -type f -name 'omarchy*' | wc -l)" -eq 425
+    test "$(rg -l 'is disabled on OmixOS' ${runtime}/share/omarchy/bin/omarchy* | wc -l)" -eq 131
+    if rg -n \
+      '(^|[;&|[:space:]])(sudo[[:space:]]+)?(pacman[[:space:]]+-[SRU]|yay([[:space:]]|$)|paru([[:space:]]|$)|mkinitcpio([[:space:]]|$)|limine([[:space:]]|$))' \
+      ${runtime}/share/omarchy/bin; then
+      echo "Arch-mutating command escaped the OmixOS boundary" >&2
+      exit 1
+    fi
 
     for command in ${pkgs.lib.escapeShellArgs blockedCommands}; do
       set +e

@@ -92,6 +92,14 @@ stdenvNoCC.mkDerivation {
     find "$runtime/bin" -type f -exec chmod 0755 {} +
     patchShebangs "$runtime/bin" "$runtime/shell"
 
+    # Theme assets copied from the Nix store inherit read-only directory modes.
+    # Make each freshly staged theme writable before it becomes user state so
+    # later live switches can replace nested backgrounds and generated files.
+    substituteInPlace "$runtime/bin/omarchy-theme-set" \
+      --replace-fail \
+      'cp -r "$USER_THEMES_PATH/$THEME_NAME/"* "$NEXT_THEME_PATH/" 2>/dev/null' \
+      'cp -r "$USER_THEMES_PATH/$THEME_NAME/"* "$NEXT_THEME_PATH/" 2>/dev/null; chmod -R u+w "$NEXT_THEME_PATH"'
+
     # Replace Arch/system-mutating entry points with an explicit NixOS boundary.
     # The source remains packaged for attribution and inventory, but these paths
     # must never invoke Pacman, edit /etc, or change boot configuration on NixOS.
@@ -123,6 +131,7 @@ stdenvNoCC.mkDerivation {
       "$runtime/bin"/omarchy-remove-browser \
       "$runtime/bin"/omarchy-remove-dev-env \
       "$runtime/bin"/omarchy-remove-gaming-* \
+      "$runtime/bin"/omarchy-remove-launcher-entry \
       "$runtime/bin"/omarchy-remove-security-* \
       "$runtime/bin"/omarchy-remove-service-* \
       "$runtime/bin"/omarchy-setup-direct-boot \

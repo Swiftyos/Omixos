@@ -16,5 +16,11 @@ pkgs.runCommand "omarchy-runtime-smoke" { nativeBuildInputs = [ pkgs.bash ]; } '
   test -f "$HOME/.local/state/omarchy/current/theme/shell.toml"
   test -f "$HOME/.local/state/omarchy/current/theme/hyprland.lua"
 
+  # Store-backed theme directories must remain replaceable user state.
+  test -w "$HOME/.local/state/omarchy/current/theme/backgrounds"
+  OMARCHY_THEME_HEADLESS=1 ${runtime}/bin/omarchy-theme-set Catppuccin
+  test "$(cat "$HOME/.local/state/omarchy/current/theme.name")" = "catppuccin"
+  test -w "$HOME/.local/state/omarchy/current/theme/backgrounds"
+
   touch "$out"
 ''
