@@ -24,11 +24,13 @@ ARM VM is not evidence of board support.
 SSH is not an open, passwordless default on the image. Add an authorized public
 key declaratively under `users.users.omix.openssh.authorizedKeys.keys` in a
 private host overlay, rebuild, and then deploy with `nixos-rebuild --target-host`.
-Remote sudo remains password-protected.
+The `omarchy sshd` compatibility command is the NixOS adapter for this service;
+remote sudo remains password-protected.
 
 ## Tailscale and firewall
 
-Tailscale, custom DNS helpers, Wi-Fi QR flows, and broad firewall policy are
-not guaranteed by the Pi core profile. Add them as explicit NixOS services or
-packages when needed. Do not rely on upstream menu entries as proof that a
-service is installed.
+Tailscale has a NixOS service adapter, and the network panel's DNS selection is
+backed by an OmixOS NetworkManager adapter for Cloudflare, Google, DHCP, or a
+custom provider. Enable/configure these explicitly and verify with `systemctl`
+or `nmcli`; do not rely on an upstream menu entry as proof that a service is
+installed. Wi-Fi QR flows and broad firewall policy remain target-specific.

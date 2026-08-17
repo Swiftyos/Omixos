@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# Manage the declarative OpenSSH daemon and the current user's authorized key.
+
+set -euo pipefail
+
+command_name=$(basename "$0")
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/toggles"
+authorized_keys="$HOME/.ssh/authorized_keys"
+dry_run=${OMIXOS_SSHD_DRY_RUN:-0}
+(( dry_run )) || mkdir -p "$state_dir"
+
+valid_key() { ssh-keygen -lf /dev/stdin <<<"$1" >/dev/null 2>&1; }
+
+authorize_key() {
+  local key=$1
+  valid_key "$key" || { echo "Not a valid SSH public key." >&2; exit 2; }
+  mkdir -p "$HOME/.ssh"
+  chmod 700 "$HOME/.ssh"
+  touch "$authorized_keys"
+  chmod 600 "$authorized_keys"
+  grep -qxF "$key" "$authorized_keys" || printf '%s\n' "$key" >>"$authorized_keys"
+}
+
+case "$command_name" in
+  omarchy-setup-security-sshd)
+    key=
+    github_user=
+    while (( $# )); do
+      case "$1" in
+        --key=*) key=${1#--key=} ;;
+        --gh-keys=*) github_user=${1#--gh-keys=} ;;
+        --gh-keys) shift; github_user=${1:-} ;;
+        -h|--help)
+          echo "Usage: omarchy-setup-security-sshd [--key=<public-key>] [--gh-keys <github-username>]"
+          exit 0
+          ;;
+        *) echo "Unknown option: $1" >&2; exit 2 ;;
+      esac
+      shift
+    done
+    [[ -z $key || -z $github_user ]] || { echo "Pass either --key or --gh-keys, not both." >&2; exit 2; }
+    if (( dry_run )); then
+      echo "sshd=enabled key-source=${github_user:+github}${key:+argument}"
+      exit 0
+    fi
+    rm -f "$state_dir/sshd-disabled"
+    sudo systemctl reset-failed sshd.service
+    sudo systemctl start sshd.service
+    if [[ -n $github_user ]]; then
+      [[ $github_user != -* ]] || { echo "--gh-keys needs a GitHub username." >&2; exit 2; }
+      keys=$(curl -fsSL "https://github.com/$github_user.keys")
+      [[ -n $keys ]] || { echo "No SSH keys found for $github_user." >&2; exit 1; }
+      while IFS= read -r candidate; do [[ -z $candidate ]] || authorize_key "$candidate"; done <<<"$keys"
+    elif [[ -n $key ]]; then
+      authorize_key "$key"
+    else
+      key=$(gum input --prompt "Public key> " --placeholder "ssh-ed25519 AAAA... user@host")
+      [[ -n $key ]] || exit 1
+      authorize_key "$key"
+    fi
+    echo "SSH is running; connect with: ssh $USER@$(hostname)"
+    ;;
+  omarchy-remove-security-sshd)
+    if (( dry_run )); then
+      echo "sshd=disabled"
+      exit 0
+    fi
+    touch "$state_dir/sshd-disabled"
+    sudo systemctl stop sshd.service
+    if [[ -s $authorized_keys ]] && gum confirm "Also remove $authorized_keys?"; then
+      rm -f "$authorized_keys"
+    fi
+    echo "SSH server access has been disabled."
+    ;;
+  *)
+    echo "No OmixOS SSH adapter is registered for $command_name" >&2
+    exit 2
+    ;;
+esac

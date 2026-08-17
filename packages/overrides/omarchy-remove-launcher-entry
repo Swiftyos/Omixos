@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# omarchy:summary=Remove or uninstall the selected launcher entry
+# omarchy:args=<desktop-id> <name>
+# omarchy:hidden=true
+
+set -euo pipefail
+
+desktop_id="${1:-}"
+entry_name="${2:-}"
+[[ -n $desktop_id ]] || { echo "Usage: omarchy-remove-launcher-entry <desktop-id> <name>" >&2; exit 1; }
+[[ $desktop_id == *.desktop ]] || desktop_id="$desktop_id.desktop"
+
+user_data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+data_dirs="$user_data_home:$HOME/.nix-profile/share:${XDG_DATA_DIRS:-/run/current-system/sw/share:/nix/var/nix/profiles/default/share}"
+desktop_file=
+while IFS= read -r data_dir; do
+  if [[ -f $data_dir/applications/$desktop_id ]]; then
+    desktop_file="$data_dir/applications/$desktop_id"
+    break
+  fi
+done < <(tr ':' '\n' <<<"$data_dirs")
+
+[[ -n $desktop_file ]] || { echo "Could not find launcher entry: $desktop_id" >&2; exit 1; }
+desktop_name="${desktop_id%.desktop}"
+exec_line="$(sed -n 's/^Exec=//p' "$desktop_file" | head -1)"
+
+if [[ $exec_line =~ omarchy-launch-webapp|omarchy-webapp-handler ]]; then
+  OMARCHY_REMOVE_NOTIFY=false exec omarchy-webapp-remove "$desktop_name"
+fi
+if [[ $exec_line =~ (^|[[:space:]])(\$TERMINAL|xdg-terminal-exec)[[:space:]].*-e([[:space:]]|$) ]]; then
+  OMARCHY_REMOVE_NOTIFY=false exec omarchy-tui-remove "$desktop_name"
+fi
+if [[ $desktop_file == "$user_data_home/applications/"* ]]; then
+  rm -f "$desktop_file"
+  update-desktop-database "$user_data_home/applications" >/dev/null 2>&1 || true
+  exit 0
+fi
+
+resolved_desktop="$(readlink -f "$desktop_file")"
+nix_cli=(nix --extra-experimental-features "nix-command flakes")
+profile_args=()
+[[ -z ${OMIXOS_NIX_PROFILE:-} ]] || profile_args=(--profile "$OMIXOS_NIX_PROFILE")
+profile_json="$("${nix_cli[@]}" profile list "${profile_args[@]}" --json 2>/dev/null || printf '%s' '{"elements":{}}')"
+profile_match="$(jq -r --arg path "$resolved_desktop" '
+  .elements
+  | to_entries[]
+  | select(any(.value.storePaths[]; . as $store | $path == $store or ($path | startswith($store + "/"))))
+  | [
+      .key,
+      (.value.attrPath
+        | sub("^legacyPackages\\.[^.]+\\."; "")
+        | sub("^packages\\.[^.]+\\."; ""))
+    ]
+  | @tsv
+' <<<"$profile_json" | head -1)"
+
+if [[ -n $profile_match ]]; then
+  IFS=$'\t' read -r profile_name profile_attr <<<"$profile_match"
+  echo "Uninstalling ${entry_name:-$desktop_name} from the OmixOS user profile..."
+  "${nix_cli[@]}" profile remove "${profile_args[@]}" "$profile_name"
+
+  state_file="${XDG_STATE_HOME:-$HOME/.local/state}/omixos/packages.tsv"
+  if [[ -f $state_file ]]; then
+    temporary_state="$(mktemp "${state_file}.XXXXXX")"
+    awk -F '\t' -v attr="$profile_attr" '$2 != attr' "$state_file" >"$temporary_state"
+    mv "$temporary_state" "$state_file"
+  fi
+  omarchy-menu refresh >/dev/null 2>&1 || true
+  exit 0
+fi
+
+echo "${entry_name:-$desktop_name} is part of the declarative OmixOS system and cannot be uninstalled from the app library." >&2
+echo "Remove its package from the host configuration and rebuild the NixOS generation instead." >&2
+exit 2

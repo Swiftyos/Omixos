@@ -3,8 +3,8 @@
 [Ghostty](https://ghostty.org/) is the intended default terminal for the current
 OmixOS profile. Foot remains in the runtime for compatibility and lightweight
 ARM sessions, but the default terminal preference is seeded to Ghostty. This
-default and its Hyprland window are verified through `xdg-terminal-exec` in
-the generic ARM graphical test.
+default and its Hyprland window were verified through `xdg-terminal-exec` in
+the graphical VM; physical Pi acceptance remains separate.
 
 If you use Tmux, you may not mind, but if not, Ghostty and Foot are the
 supported packaged choices. Do not use the upstream _Install > Terminal_ menu

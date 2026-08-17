@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Restore the removable Quattro application set in the current user's pinned
+# Nix profile. Core OmixOS applications are declarative and are left in place.
+
+set -euo pipefail
+
+packages=(
+  aether
+  cliamp
+  libreoffice-fresh
+  xournalpp
+  pinta
+  obsidian
+  obs-studio
+  kdenlive
+  moonlight-qt
+  lazydocker
+  omacut
+  omacalc
+  omawrite
+)
+
+if [[ ${OMIXOS_PREINSTALLS_DRY_RUN:-0} == 1 ]]; then
+  printf 'omarchy-pkg-add'
+  printf ' %q' "${packages[@]}"
+  printf '\n'
+  exit 0
+fi
+
+if [[ ${OMIXOS_PREINSTALLS_CONFIRM:-0} == 1 ]] || \
+  gum confirm "Restore all supported preinstalled Omarchy applications?"; then
+  echo "Restoring preinstalled OmixOS applications..."
+  omarchy-refresh-applications
+  omarchy-pkg-add "${packages[@]}"
+  rm -f \
+    "$HOME/.local/share/applications/omacalc.desktop" \
+    "$HOME/.local/share/applications/omacut.desktop" \
+    "$HOME/.local/share/applications/omawrite.desktop"
+  rm -f "$HOME/.local/state/omarchy/preinstalls-removed"
+  hyprctl reload >/dev/null 2>&1 || true
+  echo "Preinstalled applications have been restored."
+fi

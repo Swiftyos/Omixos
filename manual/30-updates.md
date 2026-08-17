@@ -23,9 +23,16 @@ sudo nixos-rebuild switch \
   --use-remote-sudo
 ```
 
-`omarchy update` is retained as a compatibility command. It explains or
-dispatches the Nix-native workflow; it never runs `pacman`, `yay`, AUR
+`omarchy update` is the NixOS adapter. It refreshes or clones the OmixOS source,
+updates pinned flake inputs, builds the selected host, and switches a new NixOS
+generation only after the build succeeds. It never runs `pacman`, `yay`, AUR
 transactions, Arch migrations, or mutable channel changes.
+
+Other formerly system-mutating menu routes have the same boundary-aware
+adapters: `omarchy-dns` edits NetworkManager profiles, `omarchy-menu-timezone`
+uses the NixOS/timedatectl system policy, service commands manage Tailscale and
+Sunshine, and development-environment commands manage Mise state. These are
+real NixOS integrations; they do not imply arbitrary Arch package mutation.
 
 ## Generations and rollback
 

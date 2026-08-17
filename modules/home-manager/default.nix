@@ -9,6 +9,7 @@ let
   cfg = config.programs.omarchy;
   runtime = cfg.package;
   omarchyPath = "${runtime}/share/omarchy";
+  voxtypeModelName = "ggml-base.en.bin";
 in
 {
   options.programs.omarchy = {
@@ -26,10 +27,49 @@ in
       default = "Tokyo Night";
       description = "Theme seeded only when no active theme exists.";
     };
+
+    dictation = {
+      enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Enable Omarchy-compatible VoxType dictation.";
+      };
+
+      package = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.voxtype;
+        defaultText = lib.literalExpression "pkgs.voxtype";
+        description = "Pinned VoxType package used by the Omarchy dictation workflow.";
+      };
+
+      osdPackage = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.voxtype-osd-gtk4;
+        defaultText = lib.literalExpression "pkgs.voxtype-osd-gtk4";
+        description = "Pinned GTK4 layer-shell OSD used by the VoxType daemon.";
+      };
+
+      modelPackage = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.voxtype-model-base-en;
+        defaultText = lib.literalExpression "pkgs.voxtype-model-base-en";
+        description = "Default Whisper base.en model included for offline first use.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ runtime ];
+    home.packages = [
+      runtime
+    ]
+    ++ lib.optionals cfg.dictation.enable [
+      cfg.dictation.package
+      cfg.dictation.osdPackage
+    ];
+    home.sessionPath = [
+      "/etc/profiles/per-user/$USER/bin"
+      "$HOME/.nix-profile/bin"
+    ];
     home.sessionVariables = {
       OMARCHY_PATH = omarchyPath;
       EDITOR = "omarchy-launch-editor --inline";
@@ -104,6 +144,37 @@ in
         };
         Install.WantedBy = [ "graphical-session.target" ];
       };
+
+      voxtype = lib.mkIf cfg.dictation.enable {
+        Unit = {
+          Description = "VoxType push-to-talk voice-to-text daemon";
+          Documentation = "https://voxtype.io";
+          After = [
+            "graphical-session.target"
+            "pipewire.service"
+            "pipewire-pulse.service"
+          ];
+          PartOf = [ "graphical-session.target" ];
+          ConditionEnvironment = "WAYLAND_DISPLAY";
+          ConditionPathExists = "!%h/.local/state/omarchy/toggles/voxtype-disabled";
+        };
+        Service = {
+          Type = "simple";
+          ExecStart = "${cfg.dictation.package}/bin/voxtype daemon";
+          Environment = "PATH=${
+            lib.makeBinPath [
+              cfg.dictation.package
+              cfg.dictation.osdPackage
+              pkgs.libnotify
+              pkgs.wl-clipboard
+              pkgs.wtype
+            ]
+          }";
+          Restart = "on-failure";
+          RestartSec = 5;
+        };
+        Install.WantedBy = [ "graphical-session.target" ];
+      };
     };
 
     home.activation.omarchySeedWritableState = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
@@ -126,10 +197,17 @@ in
         "$HOME/.local/state/omarchy/current" \
         "$HOME/.local/state/omarchy/migrations" \
         "$HOME/.local/state/omarchy/toggles/hypr" \
+        "$HOME/.local/share/voxtype/models" \
         "$HOME/.local/share/applications"
 
       seed_path ${omarchyPath}/default/uwsm/default "$HOME/.config/uwsm/default"
       seed_path ${omarchyPath}/default/uwsm/env.d/10-omarchy "$HOME/.config/uwsm/env.d/10-omarchy"
+      ${lib.optionalString cfg.dictation.enable ''
+        seed_path ${omarchyPath}/default/voxtype/config.toml "$HOME/.config/voxtype/config.toml"
+        if [[ ! -e "$HOME/.local/share/voxtype/models/${voxtypeModelName}" ]]; then
+          ln -s ${cfg.dictation.modelPackage} "$HOME/.local/share/voxtype/models/${voxtypeModelName}"
+        fi
+      ''}
       terminal_preference="$HOME/.config/xdg-terminals.list"
       terminal_migration="$HOME/.local/state/omarchy/migrations/default-terminal-ghostty-v1"
       if [[ ! -e "$terminal_migration" ]]; then

@@ -53,20 +53,24 @@ generic graphical testing, and physical testing are intentionally distinct.
 
 - [x] Initial command compatibility inventory recorded
 - [x] Nix-native update/version/migration boundaries implemented
-- [x] Pacman/AUR/system-mutating paths disabled
+- [x] Pacman/AUR mutations replaced by pinned Nix user-profile or generation workflows
 - [x] Command-boundary/ShellCheck test passes on native ARM64
 - [x] NixOS-aware browser/desktop-entry and diagnostic wrappers implemented
 - [x] Core CLI behavior verified in ARM system and graphical sessions
-- [x] All 425 quattro source commands inventoried; 424 exposed after the intentional HEY handler removal
-- [x] Exact 131-command disabled boundary and Arch-mutation scan enforced
+- [x] All 425 quattro source commands inventoried and exposed (HEY handler removed; `omarchy-pkg-list` added)
+- [x] Exact 31-command unsupported boundary and Arch-mutation scan enforced; 394 commands remain preserved/adapted/Nix-native
+- [x] Search/install/list/presence/remove package lifecycle implemented against pinned Nixpkgs and the user profile
 
 ## Core applications
 
 - [x] Ghostty default, Foot fallback, Chromium, Nautilus, Neovim, `gtk-launch`, clipboard, screenshot, and audio/network tools declared
-- [x] Linear and Slack web apps installed; Basecamp and functional HEY integrations removed
+- [x] Linear and Slack web apps installed and launched through `gtk-launch`; Basecamp and functional HEY integrations removed
+- [x] VoxType daemon, offline model, GTK OSD, status, bindings, and enable/disable lifecycle integrated
+- [x] Aether ARM64 package plus install/launch/remove lifecycle integrated
+- [x] Omawrite, Omacalc, and Omacut build and launch as native ARM64 Qt applications
 - [x] Omarchy icon font packaged and registered
 - [x] Every essential package evaluates on ARM64
-- [x] Terminal/browser/file manager launch verified as mapped Wayland clients, including direct `gtk-launch` for Linear
+- [x] Terminal/browser/file manager launch verified as mapped Wayland clients, including direct `gtk-launch` for Linear and Slack
 - [x] Clipboard, PNG screenshot, and PipeWire control paths verified
 
 ## Dev VM

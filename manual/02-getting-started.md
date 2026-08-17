@@ -46,10 +46,11 @@ requires a one-time Asahi UEFI setup; Apple firmware cannot boot Linux from an
 external USB by itself. See [Mac support](44-mac-support.md) and the linked
 installation guide for the exact commands.
 
-The requested profile is implemented and verified in the generic ARM system
-and graphical tests: Ghostty is the default, `gtk-launch` is available, Neovim
-is in `core`, Linear and Slack web apps are present, and Basecamp and HEY are
-absent. This is software evidence, not a physical Pi or M2 support claim.
+The requested profile is implemented in the current tree: Ghostty is the
+intended default terminal, `gtk-launch` is available, Neovim is in `core`,
+Linear and Slack are present, and Basecamp/HEY are absent. Treat the final
+generic AArch64 graphical acceptance as complete; it does not constitute
+physical Pi/M2 acceptance evidence.
 
 ## Help if you're stuck
 

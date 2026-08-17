@@ -1,0 +1,105 @@
+#!/bin/bash
+
+# NixOS-compatible Omarchy development environment installer. Language
+# toolchains remain user-owned through mise, exactly as in Quattro, while
+# avoiding curl-to-shell installers and mutable system package state.
+
+set -euo pipefail
+
+environment=${1:-}
+
+usage() {
+  echo "Usage: omarchy-install-dev-env <ruby|node|bun|deno|go|laravel|symfony|php|python|elixir|phoenix|rust|java|zig|ocaml|dotnet|clojure|scala>" >&2
+}
+
+run_mise() {
+  if [[ ${OMIXOS_DEV_ENV_DRY_RUN:-0} == 1 ]]; then
+    printf 'mise'
+    printf ' %q' "$@"
+    printf '\n'
+  else
+    mise "$@"
+  fi
+}
+
+install_php() {
+  run_mise use --global php@latest
+  run_mise use --global composer@latest
+}
+
+[[ -n $environment ]] || {
+  usage
+  exit 1
+}
+
+case "$environment" in
+  ruby)
+    echo "Installing Ruby on Rails..."
+    run_mise settings add ruby.compile false
+    run_mise settings add idiomatic_version_file_enable_tools ruby
+    run_mise use --global ruby@latest
+    if [[ ${OMIXOS_DEV_ENV_DRY_RUN:-0} != 1 ]]; then
+      printf '%s\n' 'gem: --no-document' >"$HOME/.gemrc"
+      mise x ruby -- gem install rails --no-document
+    fi
+    ;;
+  node) run_mise use --global node@latest ;;
+  bun) run_mise use --global bun@latest ;;
+  deno) run_mise use --global deno@latest ;;
+  go) run_mise use --global go@latest ;;
+  php) install_php ;;
+  laravel)
+    install_php
+    run_mise use --global node@latest
+    [[ ${OMIXOS_DEV_ENV_DRY_RUN:-0} == 1 ]] || composer global require laravel/installer
+    ;;
+  symfony)
+    install_php
+    omarchy-pkg-add symfony-cli
+    ;;
+  python)
+    run_mise use --global python@latest
+    run_mise use --global uv@latest
+    ;;
+  elixir)
+    run_mise use --global erlang@latest
+    run_mise use --global elixir@latest
+    [[ ${OMIXOS_DEV_ENV_DRY_RUN:-0} == 1 ]] || mise x elixir -- mix local.hex --force
+    ;;
+  phoenix)
+    run_mise use --global erlang@latest
+    run_mise use --global elixir@latest
+    if [[ ${OMIXOS_DEV_ENV_DRY_RUN:-0} != 1 ]]; then
+      mise x elixir -- mix local.hex --force
+      mise x elixir -- mix local.rebar --force
+      mise x elixir -- mix archive.install hex phx_new --force
+    fi
+    ;;
+  rust) run_mise use --global rust@latest ;;
+  java) run_mise use --global java@latest ;;
+  zig)
+    run_mise use --global zig@latest
+    run_mise use --global zls@latest
+    ;;
+  ocaml)
+    run_mise use --global opam@latest
+    if [[ ${OMIXOS_DEV_ENV_DRY_RUN:-0} != 1 ]]; then
+      opam init --yes
+      opam install ocaml-lsp-server odoc ocamlformat utop --yes
+    fi
+    ;;
+  dotnet) run_mise use --global dotnet@latest ;;
+  clojure) run_mise use --global clojure@latest ;;
+  scala)
+    run_mise use --global java@latest
+    run_mise use --global scala@latest
+    run_mise use --global scala-cli@latest
+    ;;
+  *)
+    echo "Unknown development environment: $environment" >&2
+    usage
+    exit 1
+    ;;
+esac
+
+echo "Development environment '$environment' is ready."

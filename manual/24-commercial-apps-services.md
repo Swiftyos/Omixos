@@ -9,8 +9,9 @@ an application only when a compatible Nix package exists.
 
 Linear and Slack are included as browser-backed web-app desktop entries. They
 open through the packaged `omarchy-launch-webapp` wrapper and do not install a
-proprietary native client. The generic ARM graphical test launches Linear
-through the same `gtk-launch` path used by the application library.
+proprietary native client. The app-library path is the same-session
+`gtk-launch` path; both entries launched compositor-visible Chromium windows
+in the graphical VM. This is not physical Pi acceptance evidence.
 
 Basecamp and HEY launchers are intentionally removed from the OmixOS runtime.
 The HEY mail handler, mailto association, and preinstalled HEY hotkeys are also
@@ -18,11 +19,12 @@ removed. Do not rely on the upstream 37signals integrations being present.
 
 ## Optional services
 
-1Password, Bitwarden, Spotify, Dropbox, Tailscale, ONCE, NordVPN, and similar
-services are not guaranteed by the base image. If a service has a compatible
-Nix package, add it in a private host/profile overlay and configure it using
-that package's normal NixOS options. Never paste credentials or private keys
-into this repository.
+1Password, Bitwarden, Spotify, Dropbox, and similar optional apps can use the
+pinned user-profile aliases or a private host/profile overlay. Tailscale and
+Sunshine have NixOS service adapters, and SSH has a declarative authorized-key
+adapter; enable/configure those services rather than copying Arch service
+commands. NordVPN and ONCE remain explicit unavailable boundaries. Never paste
+credentials or private keys into this repository.
 
 The current Pi image has no embedded Wi-Fi credentials, SSH key, or reusable
 password. NetworkManager handles networking; SSH access requires an explicit

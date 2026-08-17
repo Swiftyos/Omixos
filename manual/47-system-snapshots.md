@@ -12,8 +12,9 @@ sudo nixos-rebuild switch --rollback
 ```
 
 This rolls back system packages, modules, services, and the configured desktop
-profile. It does not restore user files under `/home` or writable Home Manager
-state. Keep personal files in backups/version control.
+profile. `omarchy update` creates these generations through its NixOS adapter;
+it does not restore user files under `/home` or writable Home Manager state.
+Keep personal files in backups/version control.
 
 The Pi image uses the maintained Raspberry Pi boot chain; the VM and M2 hosts
 use their declared EFI/systemd-boot paths. There is no supported `limine-scan`,

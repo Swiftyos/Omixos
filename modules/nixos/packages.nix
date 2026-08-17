@@ -23,6 +23,7 @@ let
       file
       findutils
       foot
+      fzf
       ghostty
       gum
       gawk
@@ -39,9 +40,13 @@ let
       jq
       libxkbcommon
       libnotify
+      mise
       nautilus
       neovim
       networkmanager
+      omacalc
+      omacut
+      omawrite
       pamixer
       perl
       procps
@@ -51,6 +56,7 @@ let
       slurp
       socat
       systemd
+      tailscale
       udiskie
       util-linux
       wireplumber
@@ -102,6 +108,7 @@ in
     ++ featurePackages;
 
     virtualisation.docker.enable = cfg.features.containers;
+    users.users.${cfg.user}.extraGroups = lib.mkIf cfg.features.containers (lib.mkAfter [ "docker" ]);
 
     assertions = [
       {

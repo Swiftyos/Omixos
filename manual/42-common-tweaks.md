@@ -7,7 +7,9 @@ changes. Keep a backup of important user configuration regardless.
 
 If you screw something up, restore the affected file from your backup or remove
 it and reactivate Home Manager. The upstream _Update > Config_ and
-`omarchy-reinstall` operations are Arch-only and are not available on OmixOS.
+`omarchy-reinstall` operations are Arch-only and are not available on OmixOS;
+use Home Manager activation or a NixOS generation switch for declarative
+changes.
 
 ### Reveal all tray icons all the time
 

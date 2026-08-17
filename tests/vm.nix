@@ -3,6 +3,17 @@
   testModules,
 }:
 
+let
+  testNixpkgs = pkgs.writeTextDir "share/omixos-test-nixpkgs/flake.nix" ''
+    {
+      outputs = { self }: let
+        pkgs = import ${pkgs.path} { system = "aarch64-linux"; };
+      in {
+        packages.aarch64-linux.hello = pkgs.hello;
+      };
+    }
+  '';
+in
 pkgs.testers.runNixOSTest {
   name = "omixos-system-smoke";
 
@@ -12,7 +23,7 @@ pkgs.testers.runNixOSTest {
   requiredFeatures.kvm = false;
 
   nodes.machine =
-    { lib, ... }:
+    { lib, pkgs, ... }:
     {
       imports = testModules;
 
@@ -32,6 +43,11 @@ pkgs.testers.runNixOSTest {
 
       # The VM framework owns the ephemeral root disk and boot loader.
       boot.loader.systemd-boot.enable = lib.mkForce false;
+
+      # Offline local flake used to prove a real user-profile install without
+      # relying on network access from the NixOS test VM.
+      environment.systemPackages = [ testNixpkgs ];
+      system.extraDependencies = [ pkgs.hello ];
     };
 
   testScript = ''
@@ -54,6 +70,10 @@ pkgs.testers.runNixOSTest {
     machine.succeed("test -x /run/current-system/sw/bin/nvim")
     machine.succeed("test -x /run/current-system/sw/bin/chromium")
     machine.succeed("test -x /run/current-system/sw/bin/nautilus")
+    machine.succeed("test -x /run/current-system/sw/bin/omawrite")
+    machine.succeed("test -x /run/current-system/sw/bin/omacut")
+    machine.succeed("test -x /run/current-system/sw/bin/omacalc")
+    machine.succeed("su - omix -s /run/current-system/sw/bin/bash -c 'command -v voxtype'")
 
     machine.succeed("test -f /home/omix/.config/hypr/hyprland.lua")
     machine.succeed("test -f /home/omix/.config/uwsm/env.d/10-omarchy")
@@ -68,6 +88,10 @@ pkgs.testers.runNixOSTest {
     machine.succeed("test -f /home/omix/.local/state/omarchy/migrations/default-terminal-ghostty-v1")
     machine.succeed("test -f /home/omix/.local/state/omarchy/current/theme.name")
     machine.succeed("grep -Fx tokyo-night /home/omix/.local/state/omarchy/current/theme.name")
+    machine.succeed("test -f /home/omix/.config/voxtype/config.toml")
+    machine.succeed("grep -Fx 'model = \"base.en\"' /home/omix/.config/voxtype/config.toml")
+    machine.succeed("test -L /home/omix/.local/share/voxtype/models/ggml-base.en.bin")
+    machine.succeed("test -s /home/omix/.local/share/voxtype/models/ggml-base.en.bin")
 
     # Recreate the exact legacy launchers/default and prove the one-time
     # profile migration updates only those known OmixOS-seeded files.
@@ -82,10 +106,23 @@ pkgs.testers.runNixOSTest {
 
     machine.succeed("su - omix -s /run/current-system/sw/bin/bash -c 'omarchy-version | grep -F quattro-nixos'")
     machine.succeed("su - omix -s /run/current-system/sw/bin/bash -c 'omarchy-default-browser | grep -Fx chromium'")
-    machine.succeed("su - omix -s /run/current-system/sw/bin/bash -c 'omarchy-pkg-add >/tmp/blocked.out 2>&1; test $? -eq 2'")
-    machine.succeed("grep -F 'disabled on OmixOS' /tmp/blocked.out")
+    machine.succeed(
+        "su - omix -s /run/current-system/sw/bin/bash -c "
+        "'OMIXOS_NIXPKGS_REF=path:${testNixpkgs}/share/omixos-test-nixpkgs "
+        "OMIXOS_NIX_PROFILE=/home/omix/.local/state/omixos-test-profile "
+        "omarchy-pkg-add hello'"
+    )
+    machine.succeed("/home/omix/.local/state/omixos-test-profile/bin/hello | grep -F 'Hello, world!'")
+    machine.succeed("su - omix -s /run/current-system/sw/bin/bash -c 'omarchy-pkg-present hello'")
+    machine.succeed(
+        "su - omix -s /run/current-system/sw/bin/bash -c "
+        "'OMIXOS_NIX_PROFILE=/home/omix/.local/state/omixos-test-profile "
+        "omarchy-pkg-drop hello'"
+    )
+    machine.succeed("test ! -e /home/omix/.local/state/omixos-test-profile/bin/hello")
 
     machine.succeed("test -L /home/omix/.config/systemd/user/graphical-session.target.wants/omarchy-crash-watch.service")
     machine.succeed("test -L /home/omix/.config/systemd/user/graphical-session.target.wants/omarchy-sleep-lock.service")
+    machine.succeed("test -L /home/omix/.config/systemd/user/graphical-session.target.wants/voxtype.service")
   '';
 }

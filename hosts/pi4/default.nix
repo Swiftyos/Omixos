@@ -3,6 +3,7 @@
   inputs,
   lib,
   nixos-raspberrypi,
+  omixosGenericPkgs,
   ...
 }:
 
@@ -14,7 +15,7 @@ let
   # Reuse the same pinned generic ARM application derivations that pass in the
   # shared graphical VM; VC4 and media policy remain owned by the Pi hardware
   # modules and are verified separately on the real device.
-  genericPkgs = import inputs.nixpkgs {
+  genericNixpkgs = import inputs.nixpkgs {
     system = "aarch64-linux";
   };
 in
@@ -29,7 +30,17 @@ in
 
   nixpkgs.overlays = [
     (_final: _prev: {
-      inherit (genericPkgs) chromium ghostty;
+      inherit (genericNixpkgs) chromium ghostty;
+      inherit (omixosGenericPkgs)
+        aether
+        omacalc
+        omacut
+        omawrite
+        omarchy-fonts
+        omarchy-runtime
+        omarchy-shell
+        quickshell
+        ;
     })
   ];
 
@@ -50,7 +61,9 @@ in
   omixos.omarchy = {
     profile = "core";
     features = {
-      containers = false;
+      # Docker and the Omarchy database installer are part of the normal
+      # Quattro development workflow and are supported on AArch64.
+      containers = true;
       recording = false;
       gaming = false;
       heavyApplications = false;

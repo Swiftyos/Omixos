@@ -37,6 +37,7 @@ in
       gnome.gnome-keyring.enable = true;
       gvfs.enable = true;
       openssh.enable = lib.mkDefault true;
+      tailscale.enable = true;
       power-profiles-daemon.enable = true;
       printing.enable = cfg.features.printing;
       udisks2.enable = true;
@@ -52,5 +53,25 @@ in
     };
 
     networking.firewall.enable = true;
+    networking.firewall.allowedTCPPorts = [
+      47984
+      47989
+      48010
+    ];
+    networking.firewall.allowedUDPPorts = [
+      5353
+      47998
+      47999
+      48000
+      48002
+      48010
+    ];
+
+    systemd.services.sshd.unitConfig.ConditionPathExists = "!${
+      config.users.users.${cfg.user}.home
+    }/.local/state/omarchy/toggles/sshd-disabled";
+    systemd.services.tailscaled.unitConfig.ConditionPathExists = "!${
+      config.users.users.${cfg.user}.home
+    }/.local/state/omarchy/toggles/tailscale-disabled";
   };
 }

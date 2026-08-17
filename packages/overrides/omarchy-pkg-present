@@ -3,4 +3,42 @@
 set -euo pipefail
 
 (( $# > 0 )) || exit 1
-command -v "$1" >/dev/null 2>&1
+
+package_map="${OMARCHY_PATH:?}/lib/omixos-package-map.tsv"
+state_file="${XDG_STATE_HOME:-$HOME/.local/state}/omixos/packages.tsv"
+
+for requested in "$@"; do
+  package="${requested%%[<>=]*}"
+  attr="$package"
+  command_name="$package"
+  mapped=false
+  mapping="$(awk -F '\t' -v package="$package" '$1 == package { print $2 "\t" $3; exit }' "$package_map")"
+  if [[ -n $mapping ]]; then
+    mapped=true
+    IFS=$'\t' read -r attr command_name <<<"$mapping"
+  fi
+
+  if [[ $package == "voxtype-bin" ]] && [[ -e ${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/toggles/voxtype-disabled ]]; then
+    exit 1
+  fi
+
+  if [[ -f $state_file ]] && awk -F '\t' -v package="$package" -v attr="$attr" \
+    '$1 == package || $2 == attr { found = 1 } END { exit !found }' "$state_file"; then
+    continue
+  fi
+
+  # Package-map entries describe the declarative OmixOS closure, where a
+  # command or launcher is authoritative. Arbitrary Nixpkgs search results
+  # are user-profile packages and must remain state-backed; otherwise a
+  # same-named transitive/system command can make a removed package appear
+  # installed.
+  if [[ $mapped == true && $command_name != "-" && $command_name != desktop:* ]] && command -v "$command_name" >/dev/null 2>&1; then
+    continue
+  fi
+
+  if [[ $mapped == true && $command_name == desktop:* ]] && [[ -f ${XDG_DATA_HOME:-$HOME/.local/share}/applications/${command_name#desktop:} ]]; then
+    continue
+  fi
+
+  exit 1
+done

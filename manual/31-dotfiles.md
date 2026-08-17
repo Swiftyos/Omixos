@@ -75,8 +75,9 @@ or with a NixOS/Home Manager option instead.
 
 You can change just about everything that way, like the default keybindings.
 Just edit `~/.config/hypr/bindings.lua` to replace an app. Add the replacement
-through NixOS/Home Manager first; `omarchy-pkg-add joplin-bin` is an unsupported
-Arch command on this port:
+through NixOS/Home Manager first, or search the pinned user profile with
+`omarchy-pkg-install joplin`; `omarchy-pkg-add` is the supported alias path,
+not an Arch command on this port:
 
 ```
 hl.unbind("SUPER + SHIFT + O")

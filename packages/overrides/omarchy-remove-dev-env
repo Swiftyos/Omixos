@@ -1,0 +1,71 @@
+#!/bin/bash
+
+set -euo pipefail
+
+environment=${1:-}
+
+usage() {
+  echo "Usage: omarchy-remove-dev-env <ruby|node|bun|deno|go|laravel|symfony|php|python|elixir|phoenix|rust|java|zig|ocaml|dotnet|clojure|scala>" >&2
+}
+
+remove_mise() {
+  local tool=$1
+  if [[ ${OMIXOS_DEV_ENV_DRY_RUN:-0} == 1 ]]; then
+    printf 'mise uninstall %q --all\n' "$tool"
+    printf 'mise rm --global %q\n' "$tool"
+  else
+    mise uninstall "$tool" --all 2>/dev/null || true
+    mise rm --global "$tool" 2>/dev/null || true
+  fi
+}
+
+[[ -n $environment ]] || {
+  usage
+  exit 1
+}
+
+case "$environment" in
+  ruby)
+    remove_mise ruby
+    rm -f "$HOME/.gemrc"
+    ;;
+  node|bun|deno|go|rust|java|dotnet|clojure)
+    remove_mise "$environment"
+    ;;
+  php)
+    remove_mise composer
+    remove_mise php
+    ;;
+  laravel)
+    [[ ${OMIXOS_DEV_ENV_DRY_RUN:-0} == 1 ]] || composer global remove laravel/installer 2>/dev/null || true
+    ;;
+  symfony) omarchy-pkg-drop symfony-cli ;;
+  python)
+    remove_mise uv
+    remove_mise python
+    ;;
+  elixir|phoenix)
+    remove_mise elixir
+    remove_mise erlang
+    ;;
+  zig)
+    remove_mise zls
+    remove_mise zig
+    ;;
+  ocaml)
+    [[ ${OMIXOS_DEV_ENV_DRY_RUN:-0} == 1 ]] || rm -rf "$HOME/.opam"
+    remove_mise opam
+    ;;
+  scala)
+    remove_mise scala-cli
+    remove_mise scala
+    remove_mise java
+    ;;
+  *)
+    echo "Unknown development environment: $environment" >&2
+    usage
+    exit 1
+    ;;
+esac
+
+echo "Development environment '$environment' has been removed."

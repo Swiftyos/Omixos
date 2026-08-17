@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# omarchy:summary=Choose user-installed Nix packages to remove
+
+set -euo pipefail
+
+state_file="${XDG_STATE_HOME:-$HOME/.local/state}/omixos/packages.tsv"
+if [[ ! -s $state_file ]]; then
+  echo "No user-installed OmixOS packages are available to remove."
+  exit 0
+fi
+
+selection="$(cut -f1 "$state_file" | sort -u | fzf --multi \
+  --preview 'nix --extra-experimental-features "nix-command flakes" profile list | grep -F -- {} || true' \
+  --preview-window 'down:50%:wrap')"
+
+if [[ -n $selection ]]; then
+  while IFS= read -r package; do
+    [[ -n $package ]] && omarchy-pkg-drop "$package"
+  done <<<"$selection"
+  omarchy-show-done
+fi

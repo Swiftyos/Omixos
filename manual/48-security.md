@@ -26,8 +26,9 @@ explicit live-session policy.
 
 Security updates arrive through pinned Nix flake inputs and a new NixOS
 generation. Run `nix flake update` deliberately, validate with `nix flake
-check`, and deploy with `nixos-rebuild`. `omarchy update` never runs Pacman,
-Yay, AUR, or Arch migration commands. See [updates](30-updates.md).
+check`, and deploy with `nixos-rebuild`; `omarchy update` is the equivalent
+adapter for that flow. It never runs Pacman, Yay, AUR, or Arch migration
+commands. See [updates](30-updates.md).
 
 ## Physical and network scope
 

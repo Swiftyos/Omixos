@@ -11,6 +11,10 @@ repartition the Mac. The second is physical hardware work and remains
 unverified for display, GPU, keyboard, trackpad, Wi-Fi, Bluetooth, audio,
 suspend, firmware extraction, and actual USB boot.
 
+The VM and USB workflows are distinct: the VM is the supported non-destructive
+macOS-hosted install/build path, while Apple Silicon USB boot requires Asahi
+UEFI and is not a shortcut to the VM's validation results.
+
 Follow the [OmixOS installation manual](../docs/install.md) and
 [macOS hardware guide](../docs/macos.md). The VM flow is:
 

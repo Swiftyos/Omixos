@@ -1,0 +1,84 @@
+#!/bin/bash
+
+# Nix-native implementations for Quattro's single-application installers.
+
+set -euo pipefail
+
+command_name="$(basename "$0")"
+packages=()
+desktop_id=
+launch_command=
+
+case "$command_name" in
+  omarchy-install-ai-chatgpt)
+    display_name="ChatGPT"
+    packages=(openai-codex-desktop)
+    desktop_id=ChatGPT.desktop
+    ;;
+  omarchy-install-editor-emacs)
+    display_name="Emacs"
+    packages=(omarchy-emacs)
+    desktop_id=emacs.desktop
+    ;;
+  omarchy-install-editor-zed)
+    display_name="Zed"
+    packages=(zed)
+    desktop_id=dev.zed.Zed.desktop
+    ;;
+  omarchy-install-service-1password)
+    display_name="1Password"
+    packages=(1password 1password-cli)
+    desktop_id=1password.desktop
+    ;;
+  omarchy-install-service-dropbox)
+    display_name="Dropbox"
+    packages=(dropbox)
+    desktop_id=Dropbox.desktop
+    ;;
+  omarchy-install-service-signal)
+    display_name="Signal"
+    packages=(signal-desktop)
+    launch_command=signal-desktop
+    ;;
+  omarchy-install-service-spotify)
+    display_name="Spotify"
+    packages=(spotify)
+    desktop_id=Spotify.desktop
+    ;;
+  omarchy-install-gaming-heroic)
+    display_name="Heroic Games Launcher"
+    packages=(heroic-games-launcher-bin)
+    desktop_id=heroic.desktop
+    ;;
+  omarchy-install-gaming-lutris)
+    display_name="Lutris"
+    packages=(lutris)
+    launch_command=lutris
+    ;;
+  omarchy-install-gaming-retroarch)
+    display_name="RetroArch"
+    packages=(retroarch)
+    desktop_id=retroarch.desktop
+    mkdir -p "$HOME/Games/bios" "$HOME/Games/roms"
+    ;;
+  omarchy-install-gaming-steam)
+    display_name="Steam"
+    packages=(steam)
+    desktop_id=steam.desktop
+    ;;
+  *)
+    echo "No OmixOS catalog installer is registered for $command_name" >&2
+    exit 2
+    ;;
+esac
+
+echo "Installing $display_name..."
+omarchy-pkg-add "${packages[@]}"
+
+if [[ -n $desktop_id ]]; then
+  setsid uwsm-app -- gtk-launch "$desktop_id" >/dev/null 2>&1 &
+elif [[ -n $launch_command ]]; then
+  setsid uwsm-app -- "$launch_command" >/dev/null 2>&1 &
+fi
+
+echo "$display_name has been installed and added to the app library."

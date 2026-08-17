@@ -20,6 +20,12 @@ Black, Vantablack, Ristretto, Retro 82, Flexoki Light, Rose Pine, Catppuccin
 Latte, and White. The live selector is the authoritative preview because it
 renders the complete current shell and selected background.
 
+The optional Aether integration is a pinned, verified ARM package at version
+4.28.0. Add it to the current user's Nix profile with `omarchy-pkg-add aether`
+and remove it with `omarchy-pkg-drop aether`; that real profile lifecycle is
+covered by a graphical add/launch/remove test. The physical Pi test remains
+pending.
+
 ### Unlocks
 
 The upstream _Style > Unlock_ workflow targets its Arch boot-decryption

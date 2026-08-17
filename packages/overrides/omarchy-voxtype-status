@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# omarchy:summary=Stream VoxType status as bar-friendly JSON
+
+set -euo pipefail
+
+if [[ -e ${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/toggles/voxtype-disabled ]] || ! command -v voxtype >/dev/null 2>&1; then
+  echo '{"alt": "", "class": "idle", "tooltip": ""}'
+  exit 0
+fi
+
+exec setpriv --pdeathsig TERM voxtype status --follow --extended --format json

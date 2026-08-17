@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# omarchy:summary=Disable VoxType dictation while preserving its user configuration
+
+set -euo pipefail
+
+if [[ ${OMIXOS_VOXTYPE_REMOVE_CONFIRM:-0} != 1 ]] && \
+  ! gum confirm "Disable VoxType dictation? Your models and settings will be preserved."; then
+  exit 0
+fi
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/toggles"
+mkdir -p "$state_dir"
+touch "$state_dir/voxtype-disabled"
+systemctl --user stop voxtype.service 2>/dev/null || true
+
+if command -v hyprctl >/dev/null 2>&1; then
+  hyprctl reload >/dev/null
+fi
+omarchy-restart-shell || true
+echo "VoxType dictation is disabled. Install > AI > Dictation enables it again."

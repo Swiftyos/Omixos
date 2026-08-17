@@ -2,7 +2,9 @@
 
 The ARM core profile includes the essential shell/runtime tools; the broader
 workstation profile adds developer conveniences. If a command is absent, add
-its Nix package declaratively rather than using the upstream Arch package menu.
+its Nix package declaratively or with `omarchy-pkg-install <term>` into the
+pinned user profile rather than using the upstream Arch package menu. Remove a
+user-installed package with `omarchy-pkg-remove`.
 
 In addition to the standard Linux tools, Omarchy also ships with a bunch of enhanced shell tools. Here are the key ones.
 

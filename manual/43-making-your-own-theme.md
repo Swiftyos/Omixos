@@ -10,7 +10,11 @@ used to generate configurations for the intended Ghostty terminal, Chromium,
 Hyprland, Neovim, and the Omarchy shell (top bar, menu, notifications, OSD,
 and lock screen). Optional applications are profile-dependent.
 
-You can also use the included Aether application to create a new theme using a lovely GUI interface to play with colors and search for backgrounds. Just start it via the apps menu on `Super + Alt + Space`.
+You can also use the pinned, verified ARM Aether 4.28.0 package to create a new theme
+using a lovely GUI interface to play with colors and search for backgrounds.
+Install/remove it with `omarchy-pkg-add aether` and `omarchy-pkg-drop aether`,
+then start it via the apps menu on `Super + Alt + Space`. The graphical
+add/launch/remove lifecycle passed; physical Pi validation is still pending.
 
 ### Light mode
 

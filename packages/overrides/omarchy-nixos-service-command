@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# NixOS-aware implementations for optional Quattro services. System daemons
+# are already declared in the host generation; menu actions manage enrollment,
+# user services, launchers, and persistent enable/disable intent.
+
+set -euo pipefail
+
+command_name=$(basename "$0")
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/toggles"
+dry_run=${OMIXOS_SERVICE_DRY_RUN:-0}
+(( dry_run )) || mkdir -p "$state_dir"
+
+run() {
+  if (( dry_run )); then
+    printf 'run'
+    printf ' %q' "$@"
+    printf '\n'
+  else
+    "$@"
+  fi
+}
+
+case "$command_name" in
+  omarchy-install-service-sunshine)
+    echo "Installing Sunshine..."
+    run omarchy-pkg-add sunshine
+    run systemctl --user daemon-reload
+    run systemctl --user enable --now sunshine.service
+    if (( ! dry_run )); then
+      omarchy-webapp-install "Sunshine Admin" "https://localhost:47990" applications-internet \
+        "omarchy-launch-webapp https://localhost:47990 --ignore-certificate-errors"
+    fi
+    echo "Sunshine is enabled; Moonlight ports are provided by the OmixOS firewall generation."
+    ;;
+  omarchy-remove-service-sunshine)
+    run systemctl --user disable --now sunshine.service
+    if (( ! dry_run )); then
+      omarchy-webapp-remove "Sunshine Admin" 2>/dev/null || true
+      omarchy-pkg-drop sunshine
+    fi
+    echo "Sunshine has been disabled and removed from the user profile."
+    ;;
+  omarchy-install-service-tailscale)
+    (( dry_run )) || rm -f "$state_dir/tailscale-disabled"
+    run sudo systemctl reset-failed tailscaled.service
+    run sudo systemctl start tailscaled.service
+    if (( ! dry_run )); then
+      sudo tailscale up --accept-routes
+      sudo tailscale set --operator="$USER"
+      omarchy-plugin-enable omarchy.tailscale
+      omarchy-webapp-install "Tailscale" "https://login.tailscale.com/admin/machines" applications-internet
+    fi
+    echo "Tailscale is enabled."
+    ;;
+  omarchy-remove-service-tailscale)
+    if (( ! dry_run )); then
+      tailscale down 2>/dev/null || true
+      omarchy-plugin-disable omarchy.tailscale 2>/dev/null || true
+      omarchy-webapp-remove "Tailscale" 2>/dev/null || true
+      touch "$state_dir/tailscale-disabled"
+    fi
+    run sudo systemctl stop tailscaled.service
+    echo "Tailscale has been disabled."
+    ;;
+  omarchy-remove-service-1password)
+    if (( dry_run )); then
+      echo "run omarchy-pkg-drop 1password 1password-cli"
+    else
+      omarchy-pkg-drop 1password 1password-cli
+    fi
+    echo "1Password has been removed."
+    ;;
+  *)
+    echo "No OmixOS service adapter is registered for $command_name" >&2
+    exit 2
+    ;;
+esac

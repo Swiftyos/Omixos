@@ -4,7 +4,9 @@ The prompt configuration is user state. Starship is not currently a declared
 OmixOS core package, so treat this chapter as a customization example and add
 it through a NixOS/Home Manager profile before relying on it.
 
-Omarchy ships with a minimal [Starship](https://starship.rs/) prompt by default. That's how I like to keep my prompt. I don't need to know the user, because it's always me, and I don't need to know the time, because it's always at the top.
+The upstream Quattro guide uses a minimal [Starship](https://starship.rs/)
+prompt. Starship is not declared in the OmixOS ARM core profile; add it through
+NixOS/Home Manager or the pinned user-profile search before relying on it.
 
  ![prompt](images/prompt.webp)
 

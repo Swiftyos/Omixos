@@ -61,7 +61,7 @@ On Dell XPS laptops with a haptic touchpad, you can also set the click strength 
 
 The shared session can use [fcitx5](https://fcitx-im.org/) for non-Latin input
 when that optional feature is enabled, but language engines are not installed
-through `omarchy pkg add` on OmixOS. Add
+through the upstream package menu on OmixOS. Add
 `fcitx5-mozc`, `fcitx5-chinese-addons`, or the required configuration tool to a
 NixOS/Home Manager profile and rebuild.
 

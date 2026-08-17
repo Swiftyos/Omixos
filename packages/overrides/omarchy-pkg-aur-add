@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# omarchy:summary=Install former AUR package names through pinned Nixpkgs mappings
+# omarchy:args=<packages...>
+
+set -euo pipefail
+
+packages=()
+for package in "$@"; do
+  packages+=("${package#aur/}")
+done
+
+exec omarchy-pkg-add "${packages[@]}"

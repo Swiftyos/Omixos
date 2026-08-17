@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# The Nixpkgs replacement is available whenever the Nix CLI is installed.
+command -v nix >/dev/null 2>&1

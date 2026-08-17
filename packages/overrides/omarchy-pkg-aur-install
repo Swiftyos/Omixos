@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# omarchy:summary=Search pinned Nixpkgs for packages formerly sourced from the AUR
+# omarchy:args=[search-term]
+
+set -euo pipefail
+
+exec omarchy-pkg-install "$@"

@@ -5,6 +5,11 @@ the Hyprland, Quickshell, keyboard-first workflow, themes, shell plugins, and
 command surface, while replacing Arch's mutable package/install machinery with
 declarative NixOS and Home Manager configuration.
 
+The runtime is pinned to upstream Quattro revision
+`30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec`. This manual preserves the useful
+Quattro interaction guide, but installation, updates, packages, boot, and
+hardware claims are OmixOS-specific.
+
 The supported starting point is a Raspberry Pi 4 (`aarch64-linux`). An
 Apple-silicon M2 is a secondary target, with a safe macOS-hosted AArch64 VM for
 development and a separate Asahi/UEFI live-USB path for physical testing. The
@@ -29,6 +34,11 @@ a _motivating_ system, and productivity has always been [downstream from
 motivation](https://world.hey.com/dhh/beautiful-motivations-6fef7c73). The
 system profile is declared in the flake, so unsupported optional software does
 not silently turn into an Arch/AUR dependency.
+
+The current intended application profile has Ghostty as the default terminal,
+Neovim in core, Linear and Slack web apps, and no Basecamp or HEY launchers.
+That profile and the generic AArch64 graphical workflow have passed automated
+acceptance; physical Raspberry Pi acceptance remains separate.
 
 It's true that developing an eye for the beauty of a TUI-heavy, theme-delighted, tiling-window-managed system like Omarchy can be an acquired taste. But that's why you're here, isn't it? To experience something a little outside of your comfort zone? To embark on a little bit of an adventure into a new way of working with computers? I hope so.
 

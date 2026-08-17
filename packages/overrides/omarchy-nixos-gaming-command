@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# ARM-safe equivalents for Quattro gaming setup commands.
+
+set -euo pipefail
+
+command_name=$(basename "$0")
+dry_run=${OMIXOS_GAMING_DRY_RUN:-0}
+
+case "$command_name" in
+  omarchy-install-gaming-geforce-now)
+    if (( dry_run )); then
+      echo "webapp=GeForce NOW url=https://play.geforcenow.com"
+    else
+      omarchy-webapp-install "GeForce NOW" "https://play.geforcenow.com" applications-games
+      setsid omarchy-launch-webapp "https://play.geforcenow.com" >/dev/null 2>&1 &
+    fi
+    echo "GeForce NOW has been installed in the app library."
+    ;;
+  omarchy-remove-gaming-geforce-now)
+    (( dry_run )) || omarchy-webapp-remove "GeForce NOW" 2>/dev/null || true
+    echo "GeForce NOW has been removed."
+    ;;
+  omarchy-install-gaming-xbox-controllers)
+    if (( dry_run )); then
+      echo "kernel-module=xpad group=input"
+    else
+      if modinfo xpad >/dev/null 2>&1; then
+        sudo modprobe xpad
+      else
+        echo "The active Pi kernel does not expose the xpad driver." >&2
+        exit 2
+      fi
+      id -nG "$USER" | grep -qw input || {
+        echo "$USER must be in the input group; rebuild the OmixOS user configuration." >&2
+        exit 2
+      }
+    fi
+    echo "Xbox controller support is active; pair from Super + Ctrl + B."
+    ;;
+  omarchy-remove-gaming-xbox-controllers)
+    echo "The Pi kernel owns Xbox controller support; no out-of-tree driver is installed."
+    ;;
+  omarchy-install-gaming-gpu-lib32)
+    echo "32-bit x86 graphics libraries do not apply to the AArch64 Raspberry Pi target."
+    ;;
+  *)
+    echo "No OmixOS gaming adapter is registered for $command_name" >&2
+    exit 2
+    ;;
+esac

@@ -33,35 +33,41 @@ virtio GPU and Mesa software rendering, then follows the production login path
 through greetd, UWSM, Hyprland, and `omarchy-launch-shell`. It verifies a live
 monitor and Quickshell IPC, bar/menu/notification layers, a Catppuccin theme
 switch from the seeded Tokyo Night state, Ghostty through the actual
-`xdg-terminal-exec` default, Nautilus, and Linear through `gtk-launch` as an
-isolated Chromium window. It also verifies a Wayland clipboard round trip, a
-real PNG screenshot, notification delivery, PipeWire/WirePlumber control,
-required QML helpers, and zero failed user units. Software rendering is
+`xdg-terminal-exec` default, VoxType's daemon/model/GTK4 OSD and binding
+lifecycle, Aether's user-profile add/launch/remove lifecycle, Omawrite,
+Omacalc, Omacut, Nautilus, and both Linear and Slack through `gtk-launch`. It
+also performs a real pinned-Nixpkgs search for XTerm, installs it into the user
+profile, discovers and launches its desktop entry in the same session, removes
+it through the app-library ownership path, and proves that it is gone. Finally,
+it verifies a Wayland clipboard round trip, a real PNG screenshot, notification
+delivery, PipeWire/WirePlumber control, required QML helpers, and zero failed
+user units. Software rendering is
 test-only: the test prefixes `gtk-launch` with `OMIXOS_GRAPHICAL_TEST=1` so
 Chromium uses software rendering and a non-interactive password store. Normal
 sessions retain Chromium's GPU and keyring behavior. Physical VC4 acceptance
 remains separate.
 
-Native ARM results recorded on 2026-08-16:
+Native ARM results recorded on 2026-08-17:
 
 - full `nix flake check` passed, including the runtime, font, exact Quickshell,
   headless theme activation, command boundary, Hyprland Lua parser, and
   AArch64 headless system VM boot test;
-- the standalone AArch64 graphical smoke check passed end to end in 384.56
-  seconds, covering the real quattro shell and core desktop workflows listed
-  above, including a direct `gtk-launch Linear.desktop` command that produced
-  a compositor-visible Chromium window;
+- the final standalone AArch64 graphical smoke check passed end to end in 661.02
+  seconds, covering the real quattro shell and the package, application,
+  dictation, theme, clipboard, screenshot, notification, and audio-control
+  workflows listed above;
 - the 425-command source surface was inventoried; the built runtime exposes
-  424 after intentionally removing the HEY mail handler, with the exact 131
-  safe-disabled commands enforced and direct Arch mutation scanned out;
+  425 after replacing the removed HEY mail handler with `omarchy-pkg-list`;
+  the exact 31 unsupported commands are enforced, leaving 394 preserved,
+  adapted, or Nix-native commands, with direct Arch mutation scanned out;
 - `dev-aarch64` and `pi4` system closures built successfully;
 - `dev-aarch64`, `pi4`, and `m2` evaluated from the locked inputs;
-- the refreshed Pi image built as a 3,220,490,826-byte zstd artifact with
-  uncompressed size 9,475,538,944 bytes and SHA-256
-  `5c31dec2f269036aeddce89cee7ab7d69a1d31d2f872f168db2a4b15db6284f6`;
+- the refreshed Pi image built as a 3,876,648,015-byte zstd artifact with
+  uncompressed size 12,935,139,328 bytes and SHA-256
+  `7119e7af1da9460ab0da8afc28a8e0c67ee4a10e1ceba149cae6f14c83fbf9c4`;
 - the copied raw image matched the builder's decompressed stream at SHA-256
-  `7bb83df3ba22f47a81bc743b45fe0347a14b71f15e7473a835b6f53ee5d79080`;
-- `zstd -t`, MBR inspection, the 1 GiB FAT32 firmware partition, the 7.8 GiB
+  `5465aa62424f8d635af8cd0dcea48e58d1f19006a849ee7ed0a7ce8c169ad2b9`;
+- `zstd -t`, MBR inspection, the 1 GiB FAT32 firmware partition, the 11.04 GiB
   Linux partition, firmware/device-tree/U-Boot installation, and FAT fsck
   passed;
 - image sudoers inspection confirmed ordinary wheel access requires a password
@@ -82,10 +88,12 @@ their size.
 ## Generic ARM graphical acceptance
 
 The automated graphical VM now verifies Hyprland, Quickshell stability, bar,
-menu, notifications, terminal, Chromium, Nautilus, live theme/background
-state, clipboard, screenshots, PipeWire controls, and failed user units. PAM
-lock authentication and hardware-specific rendering, input, audio, network,
-and Bluetooth behavior remain physical acceptance items.
+menu, notifications, Ghostty, Chromium web apps, Nautilus, Aether, the native
+Qt applications, VoxType service/OSD/bindings, live user-package
+install/discovery/launch/removal, theme/background state, clipboard,
+screenshots, PipeWire controls, and failed user units. PAM lock authentication,
+real microphone transcription, and hardware-specific rendering, input, audio,
+network, and Bluetooth behavior remain physical acceptance items.
 
 ## Physical Pi acceptance record
 

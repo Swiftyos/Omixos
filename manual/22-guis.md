@@ -28,7 +28,10 @@ You start Obsidian with `Super + Shift + O`. To use theme syncing, you must sele
 
 [Omawrite](https://github.com/omacom-io/omawrite) is Omarchy's own dead-simple Markdown writing app. No vaults, no plugins, just you and the words.
 
-You start Omawrite with `Super + Shift + W`.
+You start Omawrite with `Super + Shift + W`. Omawrite is a native ARM package
+in the declarative core profile with a desktop entry; launch it from the app
+library or with `gtk-launch omawrite.desktop`. Remove it only through a host
+profile change and generation switch.
 
 ## Pinta
 
@@ -40,6 +43,10 @@ You start Pinta via the application launcher (`Super + Space`).
 
 [Aether](https://github.com/bjarneo/aether) is a theming application that can extract colors from a background image and turn them into a complete, cohesive theme. It's the easiest way to [make your own theme](43-making-your-own-theme.md).
 
+The OmixOS package is pinned and verified for ARM at Aether 4.28.0. Add/remove
+it with `omarchy-pkg-add aether` and `omarchy-pkg-drop aether`; the real profile
+lifecycle and application launch passed the graphical VM, while the physical
+Pi run remains pending.
 You start Aether via the application launcher (`Super + Space`).
 
 ## LocalSend
@@ -70,6 +77,11 @@ You start LibreOffice via the application launcher (`Super + Space`).
 [Omacalc](https://github.com/omacom-io/omacalc) is Omarchy's own dead-simple calculator, which opens in a floating window.
 
 You start Omacalc with `Super + Ctrl + Q` (or the calculator key, if your keyboard has one).
+
+Omacalc and Omacut are native ARM packages with desktop entries in the core
+profile. They are discoverable by `gtk-launch` after the menu refresh; changing
+their presence is a host-profile/generation operation, not a mutable package
+transaction.
 
 ## Signal
 

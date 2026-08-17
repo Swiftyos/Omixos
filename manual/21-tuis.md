@@ -56,3 +56,9 @@ You won't find TUIs for Wi-Fi and Bluetooth — those jobs belong to the Omarchy
 Any terminal program can get the full app treatment through a writable desktop
 entry or a declarative profile. The upstream _Install > TUI_ and _Remove > TUI_
 menus are not package installers on OmixOS.
+
+The core NixOS profile carries native ARM Omawrite, Omacut, and Omacalc
+packages as desktop entries. They launch from the application library (or with
+`gtk-launch <desktop-id>`) in the same session; because they are declarative
+core packages, remove them only by editing the host profile and switching a
+new generation.

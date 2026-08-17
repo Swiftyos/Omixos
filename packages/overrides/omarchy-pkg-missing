@@ -3,4 +3,11 @@
 set -euo pipefail
 
 (( $# > 0 )) || exit 0
-! command -v "$1" >/dev/null 2>&1
+
+for package in "$@"; do
+  if ! omarchy-pkg-present "$package"; then
+    exit 0
+  fi
+done
+
+exit 1

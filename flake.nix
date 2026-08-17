@@ -11,6 +11,11 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
+    # A recent 26.05 revision with a cached AArch64 WebKitGTK 2.52.5 closure.
+    # The primary pin currently misses that Hydra artifact, which would force
+    # every Pi image build to compile WebKit locally for Aether.
+    nixpkgs-aether.url = "github:NixOS/nixpkgs/f7a2e428f5d71c47a5a938a3c5ad7138bb291093";
+
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -37,17 +42,42 @@
       url = "git+https://git.outfoxxed.me/quickshell/quickshell?rev=28771c7c74b42e20afca0b1b63980cb46515537c";
       flake = false;
     };
+
+    voxtype = {
+      url = "github:peteonrails/voxtype/v0.7.4";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    omawrite-src = {
+      url = "github:omacom-io/omawrite/8f98892b26768236b2c20f4e637cf4b102d898bf";
+      flake = false;
+    };
+
+    omacut-src = {
+      url = "github:omacom-io/omacut/d1a63377a202fff2bc4205e94d2f39519a1d4071";
+      flake = false;
+    };
+
+    omacalc-src = {
+      url = "github:omacom-io/omacalc/dba63819810d0a3b1a0581f3bcafc9651dbfb85d";
+      flake = false;
+    };
   };
 
   outputs =
     inputs@{
       self,
       nixpkgs,
+      nixpkgs-aether,
       home-manager,
       nixos-raspberrypi,
       nixos-apple-silicon,
       omarchy-src,
       quickshell-src,
+      voxtype,
+      omawrite-src,
+      omacut-src,
+      omacalc-src,
       ...
     }:
     let
@@ -100,13 +130,19 @@
 
       pi4Configuration = nixos-raspberrypi.lib.nixosSystem {
         inherit nixpkgs;
-        specialArgs = { inherit inputs; };
+        specialArgs = {
+          inherit inputs;
+          omixosGenericPkgs = pkgs;
+        };
         modules = commonModules ++ [ ./hosts/pi4 ];
       };
 
       pi4ImageConfiguration = nixos-raspberrypi.lib.nixosInstaller {
         inherit nixpkgs;
-        specialArgs = { inherit inputs; };
+        specialArgs = {
+          inherit inputs;
+          omixosGenericPkgs = pkgs;
+        };
         modules = commonModules ++ [
           ./hosts/pi4
           ./hosts/pi4/image.nix
@@ -124,13 +160,23 @@
         final: prev:
         (import ./packages {
           pkgs = final;
+          aetherPackage = nixpkgs-aether.legacyPackages.${final.system}.callPackage ./packages/aether.nix { };
           omarchySrc = omarchy-src;
+          nixpkgsRef = "github:NixOS/nixpkgs/${nixpkgs.rev}";
+          inherit omawrite-src omacut-src omacalc-src;
         })
         // {
           quickshell = prev.quickshell.overrideAttrs (_old: {
             version = "0.3.0.r20.g28771c7";
             src = quickshell-src;
           });
+          voxtype = voxtype.packages.${final.system}.default;
+          voxtype-osd-gtk4 = voxtype.packages.${final.system}.osd-gtk4;
+          voxtype-model-base-en = final.fetchurl {
+            name = "ggml-base.en.bin";
+            url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin";
+            hash = "sha256-oDd5yG3zMjB19eeWyyzlAp8A7Ihp7uP9+4l6/jbG0AI=";
+          };
         };
 
       nixosModules.default = {
@@ -149,7 +195,18 @@
       };
 
       packages.${system} = {
-        inherit (pkgs) omarchy-fonts omarchy-runtime omarchy-shell;
+        inherit (pkgs)
+          aether
+          omarchy-fonts
+          omarchy-runtime
+          omarchy-shell
+          omawrite
+          omacut
+          omacalc
+          voxtype
+          voxtype-osd-gtk4
+          voxtype-model-base-en
+          ;
         macos-vm-image = macosVmConfiguration.config.system.build.images.qemu-efi;
         apple-silicon-usb-image = appleSiliconUsbConfiguration.config.system.build.isoImage;
         pi4-image = pi4ImageConfiguration.config.system.build.sdImage;

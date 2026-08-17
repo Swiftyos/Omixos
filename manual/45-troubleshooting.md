@@ -35,5 +35,7 @@ For password initialization on a fresh Pi image, use the one-time
 has a password; there is no reusable default password.
 
 For a runtime/CLI issue, run `omarchy commands --check` and the relevant
-`omarchy <route> --help`. Arch-only commands should report the NixOS boundary,
-not mutate the host.
+`omarchy <route> --help`. The 31 explicitly bounded hardware/x86/boot/
+destructive commands should report their reason and exit; package, update,
+DNS/timezone, service, and dev-environment routes use NixOS adapters and should
+not be described as generically unsupported.

@@ -22,7 +22,11 @@ Pi 4 or M2 support claim is made until its acceptance list is run.
 
 The `core` profile uses Ghostty by default, keeps Foot as a fallback, includes
 Neovim and the GTK `gtk-launch` command, provides Linear and Slack web apps,
-and omits Basecamp and all functional HEY integration.
+and omits Basecamp and all functional HEY integration. The app library can
+search the pinned Nixpkgs revision, install an application into the user's Nix
+profile, discover its desktop entry without logging out, launch it with
+`gtk-launch`, and remove it again. VoxType dictation and the Aether app store
+are included as native AArch64 integrations.
 
 ## Development
 
@@ -103,7 +107,9 @@ commands. Theme switching and user plugins remain writable user operations.
 
 - Physical Pi 4 boot, VC4, audio, Wi-Fi, Bluetooth, and performance tests are pending.
 - Physical M2/Asahi tests are pending.
-- Upstream Arch install, package, migration, channel, and boot commands are disabled.
+- 31 of 425 command paths are explicit hardware/architecture/boot or
+  destructive-development boundaries; the remaining 394 are preserved or
+  adapted to NixOS.
 - Some optional/proprietary quattro applications are unavailable on ARM64.
 - A user password must be initialized with the image's one-time locked-account
   helper, and an SSH public key must be configured explicitly; neither is embedded.

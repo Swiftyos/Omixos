@@ -36,8 +36,9 @@
 
 - Pacman, Yay, AUR, ALPM hooks, Arch migrations, channels, ISO installer,
   Limine scripts, and mutable `/etc` provisioning are not ported.
-- Their mutating command entry points fail safely or report the NixOS
-  generation workflow.
+- Package discovery/install/removal uses the pinned Nixpkgs revision and each
+  user's Nix profile; system changes use NixOS generations. The 31 commands
+  with no faithful Pi/NixOS behavior fail with an explicit boundary reason.
 - Greetd is used for the initial lightweight login path; SDDM theme parity is
   deferred.
 - `omarchy update` documents flake updates and rebuilds instead of mutating the
@@ -45,26 +46,35 @@
 
 ## Application gaps
 
-- Ghostty is the verified default, Foot remains a fallback, Neovim and
-  `gtk-launch` are in `core`, and Linear launches as an isolated Chromium app
-  through the GTK desktop-entry path. Slack's desktop entry is verified.
-  Physical Pi app performance remains unmeasured.
+- Ghostty is the verified default, Foot remains a fallback, and Neovim and
+  `gtk-launch` are in `core`. Linear and Slack both launch as isolated
+  Chromium apps through the GTK desktop-entry path. Physical Pi app
+  performance remains unmeasured.
 - Basecamp is excluded. HEY's desktop entry, handler, preinstalled hotkeys, and
   mailto association are removed; ordinary `mailto:` handling falls back to
   Chromium.
-
-- Heavy media, gaming, Windows VM, commercial, and x86-only applications are
-  outside Pi v0.1.
-- `omarchy-pkg-present/missing` is a best-effort command check for menu guards,
-  not a Nix package database API.
+- The live user-package test searches pinned Nixpkgs, installs XTerm, discovers
+  and launches its desktop entry in the same session, then removes it through
+  the app-library ownership path. Declarative system packages still require a
+  rebuild rather than mutable removal.
+- Aether 4.28.0 is packaged from its verified upstream ARM64 release and its
+  add/launch/remove lifecycle passes. Omawrite, Omacalc, and Omacut also build
+  and launch natively on ARM64.
+- VoxType 0.7.4 starts with its offline base.en model, GTK4 OSD, bar status,
+  Hyprland bindings, and enable/disable lifecycle in the graphical VM. Real
+  microphone capture and typing remain a physical Pi acceptance item.
+- Heavy media and x86-only gaming/Windows applications remain outside the Pi
+  target. Their command paths return architecture-specific explanations where
+  no AArch64 implementation exists.
 - Live Chromium chrome retinting is deferred: the upstream helper writes a
   managed policy under mutable `/etc`, while OmixOS keeps system policy
   declarative. Theme state, shell colors, applications, and backgrounds still
   use the writable runtime theme path.
-- The Pi host deliberately reuses the pinned generic ARM Chromium derivation.
-  Letting the hardware flake's board-specific FFmpeg override propagate into
-  Chromium produced an unrelated 57k-action rebuild and exceeded the native
-  builder's memory; Pi browser video acceleration remains a physical test.
+- The Pi host deliberately reuses the verified generic ARM application
+  derivations for Chromium, Ghostty, the Omarchy runtime/shell, Aether, and the
+  native Qt apps. Letting the hardware flake's board-specific FFmpeg override
+  propagate into hardware-independent applications produced unrelated large
+  rebuilds; Pi browser video acceleration remains a physical test.
 - The Omarchy icon font is packaged and registered; live glyph rendering still
   belongs to graphical acceptance testing.
 

@@ -48,8 +48,9 @@ Windows folks: your Win + V clipboard history lives on `Super + Ctrl + V`, and i
 A lot of settings live in text files you edit, not panels you click through. That sounds primitive until you realize it means every tweak can be seen, copied to your next machine, and put in version control. The _Setup_ menu drops you straight into the right file and restarts whatever needs restarting when you're done.
 
 Updates come through the Nix flake and `nixos-rebuild`, which creates a new
-system generation. `omarchy update` is a compatibility command that explains
-this flow; it does not run Pacman, AUR, or Arch migrations. See [updates](30-updates.md).
+system generation. `omarchy update` is the NixOS adapter: it refreshes the
+OmixOS checkout/flake and switches the selected host after the build succeeds;
+it does not run Pacman, AUR, or Arch migrations. See [updates](30-updates.md).
 
 Software comes from the pinned Nixpkgs/OmixOS package set or a declarative
 overlay, not from downloaded installers or mutable package commands.

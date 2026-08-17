@@ -13,11 +13,15 @@ marked verified after Nix evaluates or builds it on `aarch64-linux`.
 | `xdg-desktop-portal-gtk` | `pkgs.xdg-desktop-portal-gtk` | core portable | GTK portal fallback | ARM build passed; live picker pending |
 | `ghostty` | `pkgs.ghostty` | core portable | Default terminal | Ghostty 1.3.1 ARM build and mapped Wayland window pass through `xdg-terminal-exec` |
 | `foot` | `pkgs.foot` | core portable | Fallback terminal and upstream desktop-entry compatibility | ARM closure passed |
-| `gtk3` / `gtk-launch` | `pkgs.gtk3` | core portable | Application-library launcher | Installed in ARM system; Linear launch passes through `gtk-launch` |
+| `gtk3` / `gtk-launch` | `pkgs.gtk3` | core portable | Application-library launcher | Installed in ARM system; Linear, Slack, Aether, the native Qt utilities, and a dynamically installed XTerm launch through `gtk-launch` |
 | `chromium` | pinned generic `pkgs.chromium` | core portable | Default browser | Native ARM build and mapped window pass; Pi reuses the generic ARM derivation instead of the hardware flake's unrelated FFmpeg override |
 | `nautilus` | `pkgs.nautilus` | core portable | File manager | ARM build and mapped Wayland window pass |
-| Linear and Slack | project desktop entries + `omarchy-launch-webapp` | core web apps | Requested collaboration apps | Entries pass runtime/system checks; Linear opens as a Chromium app through `gtk-launch` |
+| Linear and Slack | project desktop entries + `omarchy-launch-webapp` | core web apps | Requested collaboration apps | Both open as isolated Chromium apps through `gtk-launch` in the graphical ARM VM |
 | Basecamp and HEY | omitted | excluded | Explicitly not installed | Desktop entries absent; HEY handler, hotkeys, and mailto association removed |
+| VoxType 0.7.4 + GTK4 OSD + base.en model | pinned flake input/overlay and Home Manager user service | core adapted | Offline push-to-talk dictation | Native ARM build; daemon, model, OSD, status, bindings, and remove/reinstall lifecycle pass graphically; physical microphone pending |
+| Aether 4.28.0 | verified upstream ARM64 `.deb`, repackaged by `packages/aether.nix`; WebKitGTK 2.52.5 from exact cached NixOS 26.05 pin | installable native app | Graphical app store | Native ARM build and live user-profile add/launch/remove lifecycle pass |
+| Omawrite, Omacalc, Omacut | pinned source inputs + native Qt derivations | core portable | Quattro writing, calculator, and cutting utilities | All three build and launch as compositor-visible ARM64 windows |
+| Dynamic Nixpkgs applications | pinned Nixpkgs search + user Nix profile | user-installable | Omarchy package/app-library workflow | XTerm search/install, same-session desktop discovery, launch, and removal pass graphically |
 | `gum`, `wtype` | same-named Nixpkgs attributes | core portable | Writable plugin/theme prompts and text injection | ARM evaluation passed |
 | `wl-clipboard` | `pkgs.wl-clipboard` | core portable | Clipboard/history | Live Wayland copy/paste round trip passes |
 | `grim`, `slurp` | same-named attributes | core portable | Screenshots | Live PNG capture passes in VM; physical VC4 path pending |
@@ -34,17 +38,18 @@ marked verified after Nix evaluates or builds it on `aarch64-linux`.
 | `imv`, `imagemagick`, `qrencode` | same-named attributes | core portable | Images/QR/helpers | ARM closure passed; live helpers pending |
 | `nvim` | `pkgs.neovim` | core portable | Default editor | Installed executable and editor configuration verified in ARM system test |
 | `btop`, `eza`, `fd`, `fzf`, `tmux` | Nixpkgs | workstation | Developer profile | Generic ARM workstation closure passed |
-| Docker stack | NixOS Docker module + packages | optional portable | Containers | Disabled on Pi by default |
+| Docker stack | NixOS Docker module + packages | portable service | Containers | Enabled declaratively on Pi 4 with Compose and Lazydocker |
 | OBS/Kdenlive/GPU recorder | Nixpkgs/custom | deferred | Recording/editing | v0.1 non-goal; GPU recorder unresolved |
 | LibreOffice/Xournal++ | Nixpkgs | optional heavy | Workstation | M2 configuration evaluation passed; build pending |
 | Steam/Lutris/Battle.net | Nixpkgs/vendor | gaming/architecture-specific | None | Deferred; not Pi scope |
 | Obsidian/Zoom/Discord/vendor apps | varies | proprietary/vendor | None | Deferred; many are x86-only |
 | Pacman/Yay/ALPM hooks | none | Arch-specific | None | Intentionally not ported |
 | Limine/mkinitcpio/Snapper integration | target NixOS boot/generations | Arch-specific replacement | Rollback | Replaced by target hardware modules/generations |
-| Pi kernel/firmware/VC4/Bluetooth | `nixos-raspberrypi` modules | hardware-specific | Required Pi | BCM2711 kernel, firmware, U-Boot, host closure, and compressed image build passed; generic Chromium/Ghostty derivations avoid board-media overlays for hardware-independent apps; physical test pending |
+| Pi kernel/firmware/VC4/Bluetooth | `nixos-raspberrypi` modules | hardware-specific | Required Pi | BCM2711 kernel, firmware, U-Boot, host closure, and compressed image build passed; verified generic ARM application derivations avoid board-media overlays for hardware-independent apps; physical test pending |
 | Asahi kernel/firmware/GPU | `nixos-apple-silicon` module | hardware-specific | Secondary target | Locked module evaluation passed; physical test pending |
 
 Optional packages use platform availability filtering; essential core packages
 fail the configuration rather than disappearing silently. The custom runtime,
-fonts, and exact Quickshell built locally; the configured caches supplied most
-Nixpkgs dependencies but not the locked Chromium derivation during this run.
+fonts, and exact Quickshell built locally. Aether uses an exact NixOS 26.05
+package pin with a cached AArch64 WebKitGTK 2.52.5 artifact; Pi hardware policy
+does not leak board-specific media overrides into hardware-independent apps.

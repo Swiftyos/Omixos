@@ -5,8 +5,11 @@ opened by `Super + Shift + Return`, by the XDG web handlers, and by the Linear
 and Slack web-app launchers in the current profile.
 
 The upstream _Install > Browser_ menu is not a Pacman/AUR installer here. Add
-another browser through a NixOS/profile overlay, then rebuild. Physical Pi
-browser acceleration and optional browser parity remain unverified.
+another supported browser with `omarchy-pkg-install` into the pinned user
+profile, or declare it in a NixOS/profile overlay and rebuild. Microsoft Edge
+has no published ARM64 Linux build and Zen has no pinned ARM64 Nixpkgs package,
+so both return explicit unavailable messages on Pi ARM. Physical Pi browser
+acceleration and optional browser parity remain unverified.
 
 ## Making one the default
 

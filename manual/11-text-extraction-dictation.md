@@ -10,10 +10,14 @@ This is very helpful for grabbing addresses out of image footers or phone number
 
 ### Dictation
 
-Omarchy offers AI dictation via [Voxtype](https://voxtype.io/), but it is not
-part of the Pi 4 core profile and is not installed through an Arch-style menu
-transaction on OmixOS. Add a compatible package/service declaratively before
-using `voxtype setup model`; physical/optional application support remains
-unverified.
+OmixOS ships the VoxType 0.7.4 workflow in the declarative user environment.
+It includes the bundled offline Whisper `base.en` model and the GTK4 OSD; no
+network model download or Arch package transaction is required. The supported
+lifecycle is `omarchy-voxtype-install` and `omarchy-voxtype-remove`, which
+start/stop the user service and update the disabled toggle.
 
-Once installed, you dictate by holding down `F9` or by toggling with `Super + Ctrl + X`, and the dictated text will appear in the focused input area.
+Hold `F9` for push-to-talk (press and release), or toggle with `Super + Ctrl + X`.
+The dictated text appears in the focused input. The daemon, bundled model,
+OSD, status, bindings, and remove/reinstall lifecycle passed graphical
+acceptance; real microphone transcription and physical audio acceptance are
+still pending.

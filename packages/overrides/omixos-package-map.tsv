@@ -1,0 +1,59 @@
+1password	_1password-gui	1password
+1password-cli	_1password-cli	op
+aether	aether	aether	store	@aetherStore@	Aether
+alacritty	alacritty	alacritty
+bitwarden	bitwarden-desktop	bitwarden
+bitwarden-cli	bitwarden-cli	bw
+brave-bin	brave	brave
+brave-origin-bin	brave	brave
+chromium	chromium	chromium
+cursor-bin	code-cursor	cursor
+dropbox	dropbox	desktop:Dropbox.desktop	webapp	https://www.dropbox.com/home	Dropbox
+firefox	firefox	firefox
+foot	foot	foot
+ghostty	ghostty	ghostty
+google-chrome	google-chrome	google-chrome-stable
+helix	helix	hx
+heroic-games-launcher-bin	heroic	heroic	unsupported	requires the x86/i686 game runtime	Heroic Games Launcher
+kitty	kitty	kitty
+kdenlive	kdePackages.kdenlive	kdenlive
+libreoffice-fresh	libreoffice	libreoffice
+libfido2	libfido2	fido2-token
+lmstudio-bin	lmstudio	lm-studio
+lutris	lutris	lutris	unsupported	its Nixpkgs game runtime is x86-only	Lutris
+microsoft-edge-stable-bin	microsoft-edge	microsoft-edge	unsupported	Microsoft does not publish an ARM64 Linux build	Microsoft Edge
+moonlight-qt	moonlight-qt	moonlight
+neovim	neovim	nvim
+nordvpn-bin	nordvpn	nordvpn
+ollama	ollama	ollama
+ollama-cuda	ollama-cuda	ollama
+ollama-rocm	ollama-rocm	ollama
+obs-studio	obs-studio	obs
+obsidian	obsidian	obsidian
+openai-codex-desktop	codex-desktop	desktop:ChatGPT.desktop	webapp	https://chatgpt.com	ChatGPT
+pam-u2f	pam_u2f	pamu2fcfg
+Pinta	pinta	pinta
+pinta	pinta	pinta
+php	php	php
+retroarch	retroarch	retroarch
+signal-desktop	signal-desktop	signal-desktop
+spotify	spotify	desktop:Spotify.desktop	webapp	https://open.spotify.com	Spotify
+steam	steam	steam	unsupported	Steam for Linux requires the x86/i686 runtime	Steam
+sunshine	sunshine	sunshine
+sublime-text-4	sublime4	sublime_text
+symfony-cli	symfony-cli	symfony
+tailscale	tailscale	tailscale
+ttf-bitstream-vera-mono-nerd	nerd-fonts.bitstream-vera-sans-mono	-
+ttf-cascadia-mono-nerd	nerd-fonts.caskaydia-mono	-
+ttf-firacode-nerd	nerd-fonts.fira-code	-
+ttf-iosevka-nerd	nerd-fonts.iosevka	-
+ttf-meslo-nerd	nerd-fonts.meslo-lg	-
+ttf-victor-mono-nerd	nerd-fonts.victor-mono	-
+vim	vim	vim
+omarchy-emacs	emacs	emacs
+visual-studio-code-bin	vscode	code
+voxtype-bin	voxtype	voxtype
+wtype	wtype	wtype
+xournalpp	xournalpp	xournalpp
+zed	zed-editor	zed
+zen-browser-bin	zen-browser	zen	unsupported	no pinned ARM64 Nixpkgs package exists	Zen Browser

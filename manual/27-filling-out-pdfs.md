@@ -1,9 +1,10 @@
 # Filling out PDFs
 
 Document Viewer is part of the Quattro workflow where the profile provides a
-PDF viewer. Xournal++ is an optional heavy application and is disabled in the
-Pi 4 core profile; add it declaratively to a compatible workstation/host
-profile before following the editing steps below.
+PDF viewer. Xournal++ is an optional ARM package in the user profile; install it
+with `omarchy-pkg-add xournalpp` (or search with `omarchy-pkg-install`) and
+remove it with `omarchy-pkg-drop xournalpp`. A system-wide feature still belongs
+in a NixOS/Home Manager host profile.
 
 Omarchy ships with a nice, basic PDF viewer called Document Viewer. This is the program that'll open any PDFs you just double click on.
 

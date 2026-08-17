@@ -234,10 +234,15 @@ On macOS, verify copied VM/USB artifacts before testing them physically:
 
 The latest requested application profile is: Ghostty as the default terminal,
 Basecamp and HEY launchers absent, Linear and Slack web apps present, and
-Neovim in the core profile. The native AArch64 system test verifies the
-packages, desktop entries, MIME defaults, and migrations. The graphical ARM
-test verifies Ghostty through the default-terminal path and Linear through
-`gtk-launch`. This manual does not claim physical Pi or M2 verification.
+Neovim in the core profile. VoxType 0.7.4, its offline `base.en` model and GTK4
+OSD are included, and Aether 4.28.0 is available through the Nix-native user
+package lifecycle. The native AArch64 system test verifies the packages,
+desktop entries, MIME defaults, migrations, and headless add/present/drop
+flow. The graphical ARM test verifies Ghostty through the default-terminal
+path, VoxType service/OSD/binding lifecycle, Aether and the native Qt apps,
+Linear and Slack through `gtk-launch`, and a live pinned-Nixpkgs
+search/install/same-session launch/app-library removal cycle. This manual does
+not claim physical Pi or M2 verification.
 
 The following physical checks remain open:
 

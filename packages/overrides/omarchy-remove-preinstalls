@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Remove the mutable Quattro preinstall set. The three native OmixOS tools are
+# part of the declarative core closure, so XDG Hidden overrides give them the
+# same application-library and launcher behavior without mutating NixOS.
+
+set -euo pipefail
+
+if [[ ${OMIXOS_PREINSTALLS_REMOVE_DRY_RUN:-0} == 1 ]]; then
+  echo "omarchy-pkg-drop aether cliamp libreoffice-fresh xournalpp pinta obsidian obs-studio kdenlive moonlight-qt lazydocker omacut omacalc omawrite"
+  exit 0
+fi
+
+if [[ ${OMIXOS_PREINSTALLS_REMOVE_CONFIRM:-0} == 1 ]] || \
+  gum confirm "Are you sure you want to remove all preinstalled web apps, TUI wrappers, and desktop applications?"; then
+  echo "Removing preinstalled OmixOS applications..."
+
+  omarchy-webapp-remove-all
+  omarchy-tui-remove-all
+
+  state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/omarchy"
+  applications_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
+  mkdir -p "$state_dir" "$applications_dir"
+  touch "$state_dir/preinstalls-removed"
+
+  rm -f \
+    "$HOME/.local/bin/codex" "$HOME/.local/bin/claude" "$HOME/.local/bin/gemini" \
+    "$HOME/.local/bin/copilot" "$HOME/.local/bin/gh" "$HOME/.local/bin/opencode" \
+    "$HOME/.local/bin/playwright" "$HOME/.local/bin/playwright-cli" "$HOME/.local/bin/pi" \
+    "$HOME/.local/bin/omp" "$HOME/.local/bin/grok" "$HOME/.local/bin/crush" \
+    "$HOME/.local/bin/ghui" "$HOME/.local/bin/hunk"
+
+  for desktop_id in omacalc omacut omawrite; do
+    cat >"$applications_dir/$desktop_id.desktop" <<EOF
+[Desktop Entry]
+Type=Application
+Name=$desktop_id
+Hidden=true
+EOF
+  done
+
+  omarchy-pkg-drop \
+    aether \
+    cliamp \
+    libreoffice-fresh \
+    xournalpp \
+    pinta \
+    obsidian \
+    obs-studio \
+    kdenlive \
+    moonlight-qt \
+    lazydocker \
+    omacut \
+    omacalc \
+    omawrite
+
+  hyprctl reload >/dev/null 2>&1 || true
+  omarchy-menu refresh >/dev/null 2>&1 || true
+fi

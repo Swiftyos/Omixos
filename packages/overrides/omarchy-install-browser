@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# omarchy:summary=Install a supported browser into the OmixOS user profile
+# omarchy:args=<chromium|chrome|brave|brave-origin|edge|firefox|zen>
+
+set -euo pipefail
+
+browser="${1:-}"
+case "$browser" in
+  chromium) package=chromium; flags_file="$HOME/.config/chromium-flags.conf" ;;
+  chrome) package=google-chrome; flags_file="$HOME/.config/chrome-flags.conf" ;;
+  edge) package=microsoft-edge-stable-bin; flags_file="$HOME/.config/microsoft-edge-stable-flags.conf" ;;
+  brave) package=brave-bin; flags_file="$HOME/.config/brave-flags.conf" ;;
+  brave-origin) package=brave-origin-bin; flags_file="$HOME/.config/brave-origin-flags.conf" ;;
+  firefox) package=firefox; flags_file= ;;
+  zen) package=zen-browser-bin; flags_file= ;;
+  *)
+    echo "Usage: omarchy-install-browser <chromium|chrome|brave|brave-origin|edge|firefox|zen>" >&2
+    exit 1
+    ;;
+esac
+
+echo "Installing $browser from the pinned OmixOS package set..."
+omarchy-pkg-add "$package"
+
+if [[ -n $flags_file ]]; then
+  mkdir -p "$(dirname "$flags_file")"
+  if [[ ! -e $flags_file ]]; then
+    cp "$OMARCHY_PATH/config/chromium-flags.conf" "$flags_file"
+  fi
+  omarchy-install-chromium-copy-url
+  omarchy-install-chromium-ytdlp
+fi
+
+if [[ $browser == firefox || $browser == zen ]]; then
+  mkdir -p "$HOME/.config/environment.d"
+  printf '%s\n' 'MOZ_ENABLE_WAYLAND=1' >"$HOME/.config/environment.d/omarchy-firefox-wayland.conf"
+fi
+
+omarchy-theme-set-browser || true
+echo "$browser is installed. Choose it under Setup > Defaults > Browser if desired."

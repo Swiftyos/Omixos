@@ -3,8 +3,11 @@
 On OmixOS, this CLI is a compatibility and desktop-control surface around an
 immutable NixOS runtime. Theme, shell, capture, notification, plugin, and
 diagnostic commands remain useful. Commands that would mutate an Arch system
-(Pacman, AUR, channels, Limine, SDDM, or installer state) are replaced by safe
-NixOS guidance or an explicit unsupported result.
+are replaced by a NixOS adapter or an explicit target-boundary result. The
+pinned source exposes 425 command entry points (the removed HEY handler is
+replaced in the curated runtime); 31 are intentionally explicit
+hardware/x86/boot/destructive boundaries. That is a small, auditable boundary,
+not a blanket claim that package installation is unsupported.
 
 Omarchy is usually controlled through the hotkeys and the Omarchy menu (`Super + Space`). But you can also control it through the `omarchy` CLI. This is particularly helpful when you're having an AI agent work with you on customization or configuration.
 
@@ -23,7 +26,7 @@ Usage:
   omarchy <group> <command> --help
 
 Common commands:
-  omarchy update              Explain the Nix flake/update workflow
+  omarchy update              Update and switch the NixOS generation
   omarchy theme list          List available themes
   omarchy theme set <name>    Apply a theme
   omarchy font list           List available fonts
@@ -62,6 +65,14 @@ Capture commands — Screenshots and screen recording:
 ```
 
 Every command takes `--help` too, whether you ask a whole group (`omarchy capture --help`) or a single command (`omarchy capture screenshot --help`).
+
+For applications, `omarchy-pkg-install` searches the OmixOS-pinned Nixpkgs
+revision and installs into the current user's Nix profile. `omarchy-pkg-add`
+and `omarchy-pkg-drop` handle known aliases; `omarchy-pkg-remove` offers the
+user-installed set (the familiar `omarchy pkg add/drop` aliases map to the same
+operations). Declarative core packages still require a host/profile edit and
+rebuild. After a profile change, the menu is refreshed and the same session can
+discover a desktop entry with `gtk-launch <desktop-id>`.
 
 ### Opening the menu from the terminal
 

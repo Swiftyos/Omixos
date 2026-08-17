@@ -1,0 +1,103 @@
+#!/bin/bash
+
+# Configure DNS through NetworkManager connection profiles, which is the
+# mutable runtime boundary NixOS intentionally exposes for network settings.
+
+set -euo pipefail
+
+state_dir=${XDG_STATE_HOME:-$HOME/.local/state}/omixos
+state_file=$state_dir/dns-provider
+dry_run=${OMIXOS_NETWORK_DRY_RUN:-0}
+
+usage() {
+  echo "Usage: omarchy-dns [Cloudflare|Google|DHCP|Custom]" >&2
+}
+
+if (( $# == 0 )); then
+  if [[ -s $state_file ]]; then
+    cat "$state_file"
+  else
+    echo DHCP
+  fi
+  exit 0
+fi
+
+(( $# == 1 )) || {
+  usage
+  exit 2
+}
+
+case "${1,,}" in
+  cloudflare)
+    provider=Cloudflare
+    ipv4="1.1.1.1 1.0.0.1"
+    ipv6="2606:4700:4700::1111 2606:4700:4700::1001"
+    ;;
+  google)
+    provider=Google
+    ipv4="8.8.8.8 8.8.4.4"
+    ipv6="2001:4860:4860::8888 2001:4860:4860::8844"
+    ;;
+  dhcp)
+    provider=DHCP
+    ipv4=
+    ipv6=
+    ;;
+  custom)
+    provider=Custom
+    servers=${OMIXOS_DNS_SERVERS:-}
+    if [[ -z $servers && -t 0 ]]; then
+      servers=$(gum input --prompt "DNS servers> " --placeholder "9.9.9.9 149.112.112.112")
+    fi
+    [[ -n $servers ]] || {
+      echo "Custom DNS requires OMIXOS_DNS_SERVERS or an interactive value." >&2
+      exit 2
+    }
+    ipv4=
+    ipv6=
+    for server in ${servers//,/ }; do
+      if [[ $server == *:* ]]; then
+        ipv6+="${ipv6:+ }$server"
+      else
+        ipv4+="${ipv4:+ }$server"
+      fi
+    done
+    ;;
+  *)
+    usage
+    exit 2
+    ;;
+esac
+
+if (( dry_run )); then
+  printf 'provider=%s\nipv4=%s\nipv6=%s\n' "$provider" "$ipv4" "$ipv6"
+  exit 0
+fi
+
+while IFS=: read -r uuid type; do
+  case "$type" in
+    802-3-ethernet|802-11-wireless) ;;
+    *) continue ;;
+  esac
+
+  if [[ $provider == DHCP ]]; then
+    nmcli connection modify "$uuid" \
+      ipv4.ignore-auto-dns no ipv4.dns "" \
+      ipv6.ignore-auto-dns no ipv6.dns ""
+  else
+    nmcli connection modify "$uuid" \
+      ipv4.ignore-auto-dns yes ipv4.dns "$ipv4" \
+      ipv6.ignore-auto-dns yes ipv6.dns "$ipv6"
+  fi
+done < <(nmcli -t -f UUID,TYPE connection show)
+
+while IFS=: read -r device type state; do
+  [[ $state == connected ]] || continue
+  case "$type" in
+    wifi|ethernet) nmcli device reapply "$device" >/dev/null || true ;;
+  esac
+done < <(nmcli -t -f DEVICE,TYPE,STATE device status)
+
+mkdir -p "$state_dir"
+printf '%s\n' "$provider" >"$state_file"
+omarchy-notification-send "DNS provider is now $provider" >/dev/null 2>&1 || true

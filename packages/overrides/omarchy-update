@@ -1,16 +1,91 @@
 #!/bin/bash
 
+# Atomic OmixOS replacement for Quattro's Pacman update pipeline. Updates are
+# built as a complete NixOS generation and switched only after evaluation and
+# realization succeed, preserving rollback from the boot menu.
+
 set -euo pipefail
 
-cat <<'EOF'
-OmixOS system updates are NixOS generation updates; the Omarchy Pacman update pipeline is disabled.
+assume_yes=0
+dry_run=${OMIXOS_UPDATE_DRY_RUN:-0}
 
-From the OmixOS flake checkout, run:
-  nix flake update
-  sudo nixos-rebuild switch --flake .#<host>
+usage() {
+  echo "Usage: omarchy-update [-y] [--dry-run]" >&2
+}
 
-For a remote Pi 4, run:
-  sudo nixos-rebuild switch --flake .#pi4 --target-host <user>@<pi-host>
+while (( $# )); do
+  case "$1" in
+    -y|--yes) assume_yes=1 ;;
+    --dry-run) dry_run=1 ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage
+      exit 2
+      ;;
+  esac
+  shift
+done
 
-Review docs/pi4.md and docs/compatibility.md before updating.
-EOF
+host=${OMIXOS_HOST:-}
+if [[ -z $host ]]; then
+  case "$(hostname)" in
+    omixos-pi4) host=pi4 ;;
+    omixos-macos-vm) host=macos-vm ;;
+    omixos-m2) host=m2 ;;
+    *) host=pi4 ;;
+  esac
+fi
+
+source_dir=${OMIXOS_FLAKE_DIR:-$HOME/.local/share/omixos/source}
+remote=${OMIXOS_SOURCE_REMOTE:-git@git.paradiso.home:craig/OmixOS.git}
+
+if (( ! assume_yes && ! dry_run )); then
+  omarchy-update-confirm
+fi
+
+if (( dry_run )); then
+  printf 'source=%s\nhost=%s\nremote=%s\n' "$source_dir" "$host" "$remote"
+  printf 'git clone/pull --ff-only\n'
+  printf 'nix flake update %s\n' "$source_dir"
+  printf 'sudo nixos-rebuild switch --flake %s#%s\n' "$source_dir" "$host"
+  exit 0
+fi
+
+# The body deliberately expands in the nested bash, not in this process.
+# shellcheck disable=SC2016
+omarchy-update-lock run bash -euo pipefail -c '
+  source_dir=$1
+  remote=$2
+  host=$3
+
+  mkdir -p "$(dirname "$source_dir")"
+  if [[ -d $source_dir/.git ]]; then
+    echo "Updating the OmixOS source checkout..."
+    git -C "$source_dir" pull --ff-only
+  elif [[ ! -e $source_dir ]]; then
+    echo "Cloning the OmixOS source checkout..."
+    git clone "$remote" "$source_dir"
+  elif [[ ! -f $source_dir/flake.nix ]]; then
+    echo "OmixOS update source is not a flake: $source_dir" >&2
+    exit 2
+  else
+    echo "Using the local OmixOS flake at $source_dir."
+  fi
+
+  omarchy-update-requires-free-space
+  omarchy-update-stay-awake start
+  trap "omarchy-update-stay-awake stop" EXIT
+
+  echo "Updating pinned flake inputs..."
+  nix --extra-experimental-features "nix-command flakes" flake update "$source_dir"
+
+  echo "Building and activating OmixOS host $host..."
+  sudo nixos-rebuild switch --flake "$source_dir#$host"
+
+  omarchy-update-mise
+  omarchy-update-status || true
+  echo "OmixOS is now running the new NixOS generation."
+' omixos-update "$source_dir" "$remote" "$host"

@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# omarchy:summary=Install packages into the current user's pinned Nix profile
+# omarchy:args=<packages...>
+
+set -euo pipefail
+
+if (( $# == 0 )); then
+  echo "Usage: omarchy-pkg-add <packages...>" >&2
+  exit 1
+fi
+
+nixpkgs_ref="${OMIXOS_NIXPKGS_REF:-@nixpkgsRef@}"
+nix_cli=(nix --extra-experimental-features "nix-command flakes")
+profile_args=()
+[[ -z ${OMIXOS_NIX_PROFILE:-} ]] || profile_args=(--profile "$OMIXOS_NIX_PROFILE")
+package_map="${OMARCHY_PATH:?}/lib/omixos-package-map.tsv"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/omixos"
+state_file="$state_dir/packages.tsv"
+mkdir -p "$state_dir"
+touch "$state_file"
+
+record_package() {
+  local package="$1" attr="$2" temporary_state
+  temporary_state="$(mktemp "$state_dir/packages.tsv.XXXXXX")"
+  awk -F '\t' -v package="$package" '$1 != package' "$state_file" >"$temporary_state"
+  printf '%s\t%s\n' "$package" "$attr" >>"$temporary_state"
+  mv "$temporary_state" "$state_file"
+}
+
+for requested in "$@"; do
+  package="${requested%%[<>=]*}"
+  attr="$package"
+  _command_name="$package"
+  install_mode=native
+  install_url=
+  display_name="$package"
+  mapping="$(awk -F '\t' -v package="$package" '$1 == package { print $2 "\t" $3 "\t" $4 "\t" $5 "\t" $6; exit }' "$package_map")"
+  if [[ -n $mapping ]]; then
+    IFS=$'\t' read -r attr _command_name install_mode install_url display_name <<<"$mapping"
+    install_mode="${install_mode:-native}"
+    display_name="${display_name:-$package}"
+  fi
+
+  if omarchy-pkg-present "$package"; then
+    printf '%s is already installed.\n' "$package"
+    continue
+  fi
+
+  if [[ $install_mode == unsupported ]]; then
+    printf '%s is unavailable on this OmixOS target: %s\n' "$display_name" "$install_url" >&2
+    exit 3
+  fi
+
+  if [[ $install_mode == webapp ]]; then
+    echo "Installing $display_name as an OmixOS web application..."
+    omarchy-webapp-install "$display_name" "$install_url" applications-internet
+    record_package "$package" "$attr"
+    continue
+  fi
+
+  if [[ $install_mode == store ]]; then
+    echo "Installing $display_name from the OmixOS pinned package closure..."
+    if ! "${nix_cli[@]}" profile add "${profile_args[@]}" "$install_url"; then
+      echo "Unable to install the pinned OmixOS package '$package'." >&2
+      exit 2
+    fi
+    record_package "$package" "$attr"
+    continue
+  fi
+
+  printf 'Installing %s from pinned Nixpkgs as %s...\n' "$package" "$attr"
+  if ! NIXPKGS_ALLOW_UNFREE=1 "${nix_cli[@]}" profile add "${profile_args[@]}" --impure --accept-flake-config "$nixpkgs_ref#$attr"; then
+    cat >&2 <<EOF
+Unable to install '$package' as Nixpkgs attribute '$attr' on this system.
+The application may be unavailable for $(uname -m), require a service-level
+NixOS module, or use a different Nixpkgs attribute. No partial package state
+was recorded.
+EOF
+    exit 2
+  fi
+
+  record_package "$package" "$attr"
+done
+
+omarchy-menu refresh >/dev/null 2>&1 || true

@@ -2,7 +2,9 @@
 
 These are user-shell conveniences from the Quattro runtime. They run against
 the immutable Nix-provided runtime and writable user state; they do not imply
-that an Arch package or AUR installer is available on OmixOS.
+that an Arch package or AUR installer is available on OmixOS. Supported package
+aliases use the pinned Nix profile (`omarchy-pkg-add`/`omarchy-pkg-drop`);
+system-level changes still belong in NixOS/Home Manager.
 
 Omarchy comes with a set of shell functions to simplify common tasks and encapsulate convoluted parameter calls.
 

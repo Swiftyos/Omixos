@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# omarchy:summary=List package aliases visible to Omarchy's menu guards
+
+set -euo pipefail
+
+package_map="${OMARCHY_PATH:?}/lib/omixos-package-map.tsv"
+state_file="${XDG_STATE_HOME:-$HOME/.local/state}/omixos/packages.tsv"
+
+while IFS=$'\t' read -r package _attr command_name; do
+  if [[ $command_name == desktop:* ]] && [[ -f ${XDG_DATA_HOME:-$HOME/.local/share}/applications/${command_name#desktop:} ]]; then
+    printf '%s\n' "$package"
+    continue
+  fi
+  if [[ $command_name != "-" ]] && command -v "$command_name" >/dev/null 2>&1; then
+    if [[ $package != "voxtype-bin" ]] || [[ ! -e ${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/toggles/voxtype-disabled ]]; then
+      printf '%s\n' "$package"
+    fi
+  fi
+done <"$package_map"
+
+if [[ -f $state_file ]]; then
+  cut -f1 "$state_file"
+fi

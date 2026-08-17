@@ -1,6 +1,32 @@
 #!/bin/bash
 
-# The upstream widget checks Arch package channels. OmixOS updates are governed
-# by the pinned flake lock, so no background network or mutable check is made.
-echo "OmixOS is pinned by flake.lock"
+set -euo pipefail
+
+source_dir=${OMIXOS_FLAKE_DIR:-$HOME/.local/share/omixos/source}
+
+if [[ ${OMIXOS_UPDATE_CHECK_OFFLINE:-0} == 1 ]]; then
+  echo "OmixOS update check skipped offline"
+  exit 1
+fi
+
+if [[ ! -d $source_dir/.git ]]; then
+  echo "OmixOS source checkout is not initialized"
+  exit 0
+fi
+
+git -C "$source_dir" fetch --quiet
+upstream=$(git -C "$source_dir" rev-parse '@{upstream}' 2>/dev/null || true)
+[[ -n $upstream ]] || {
+  echo "OmixOS source branch has no upstream"
+  exit 1
+}
+
+local_rev=$(git -C "$source_dir" rev-parse HEAD)
+remote_rev=$(git -C "$source_dir" rev-parse "$upstream")
+if [[ $local_rev != "$remote_rev" ]]; then
+  echo "OmixOS update available"
+  exit 0
+fi
+
+echo "OmixOS is current"
 exit 1

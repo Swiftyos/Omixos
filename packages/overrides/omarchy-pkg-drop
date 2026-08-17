@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# omarchy:summary=Remove packages previously installed through the OmixOS user profile
+# omarchy:args=<packages...>
+
+set -euo pipefail
+
+(( $# > 0 )) || exit 0
+
+package_map="${OMARCHY_PATH:?}/lib/omixos-package-map.tsv"
+nix_cli=(nix --extra-experimental-features "nix-command flakes")
+profile_args=()
+[[ -z ${OMIXOS_NIX_PROFILE:-} ]] || profile_args=(--profile "$OMIXOS_NIX_PROFILE")
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/omixos"
+state_file="$state_dir/packages.tsv"
+
+for requested in "$@"; do
+  package="${requested%%[<>=]*}"
+  attr="$package"
+  install_mode=native
+  display_name="$package"
+  mapping="$(awk -F '\t' -v package="$package" '$1 == package { print $2 "\t" $4 "\t" $6; exit }' "$package_map")"
+  if [[ -n $mapping ]]; then
+    IFS=$'\t' read -r attr install_mode display_name <<<"$mapping"
+    install_mode="${install_mode:-native}"
+    display_name="${display_name:-$package}"
+  fi
+  if [[ -f $state_file ]]; then
+    recorded_attr="$(awk -F '\t' -v package="$package" '$1 == package { print $2; exit }' "$state_file")"
+    attr="${recorded_attr:-$attr}"
+  fi
+  if [[ $attr == "$package" && $install_mode == native ]]; then
+    mapped_attr="$(awk -F '\t' -v package="$package" '$1 == package { print $2; exit }' "$package_map")"
+    attr="${mapped_attr:-$attr}"
+  fi
+
+  if [[ ! -f $state_file ]] || ! awk -F '\t' -v package="$package" \
+    '$1 == package { found = 1 } END { exit !found }' "$state_file"; then
+    if omarchy-pkg-present "$package"; then
+      echo "$package is part of the declarative OmixOS system and cannot be removed from the user profile." >&2
+      echo "Remove it from the host configuration and rebuild instead." >&2
+    fi
+    continue
+  fi
+
+  if [[ $install_mode == webapp ]]; then
+    omarchy-webapp-remove "$display_name" 2>/dev/null || true
+    temporary_state="$(mktemp "$state_dir/packages.tsv.XXXXXX")"
+    awk -F '\t' -v package="$package" '$1 != package' "$state_file" >"$temporary_state"
+    mv "$temporary_state" "$state_file"
+    continue
+  fi
+
+  "${nix_cli[@]}" profile remove "${profile_args[@]}" "$attr"
+  temporary_state="$(mktemp "$state_dir/packages.tsv.XXXXXX")"
+  awk -F '\t' -v package="$package" '$1 != package' "$state_file" >"$temporary_state"
+  mv "$temporary_state" "$state_file"
+done
+
+omarchy-menu refresh >/dev/null 2>&1 || true

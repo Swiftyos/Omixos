@@ -3,7 +3,8 @@
 These bindings describe the Quattro desktop session. The exact app availability
 depends on the selected OmixOS profile: the Pi 4 uses the ARM-safe `core`
 profile, while development/M2 workstation profiles add more tools. Ghostty is
-the verified default terminal in the generic ARM graphical test.
+the intended default terminal in the current profile and its real graphical
+launch path has passed generic AArch64 acceptance.
 
 You can see all the main keyboard bindings with `Super + K` (Tmux bindings with `Super + Alt + K` and Herdr bindings with `Super + Ctrl + K`).
 
@@ -283,9 +284,10 @@ These functions must be run inside a Tmux session.
 
 ## Ghostty Terminal
 
-Ghostty is the default terminal and is declared in the Nix core profile; the
-upstream _Install > Terminal_ action is not used to install it. The generic ARM
-graphical test verifies that `Super + Return` reaches Ghostty.
+Ghostty is the intended default terminal and is declared in the Nix core
+profile; the upstream _Install > Terminal_ action is not used to install it.
+Its `xdg-terminal-exec` launch path passed the graphical VM; this is not
+physical Pi acceptance evidence.
 
 The upstream HEY calendar and mail bindings are omitted together with the HEY
 launcher and mail handler.

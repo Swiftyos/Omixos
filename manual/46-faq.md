@@ -31,16 +31,17 @@ interactive printer installer is not supported.
 
 ### How do I remove software?
 
-There is no mutable _Remove > Package_ operation. Remove a package or feature
-from the NixOS/Home Manager profile and switch to a new generation. User web
-apps and plugins are writable state and can be removed through their supported
-CLI commands.
+Use `omarchy-pkg-remove` (or `omarchy-pkg-drop <alias>`) for packages recorded
+in the current user's pinned Nix profile. Core/declarative packages cannot be
+removed from that profile; edit the NixOS/Home Manager host and switch a new
+generation. The menu refreshes after profile changes, and same-session desktop
+discovery works with `gtk-launch <desktop-id>`.
 
 ### Which web apps are included?
 
 The core profile includes Linear and Slack web apps and excludes Basecamp and
-HEY launchers. The generic ARM tests verify this profile; physical target
-acceptance remains separate.
+HEY launchers. The profile and both graphical launch paths are verified;
+physical target acceptance remains separate.
 
 For errors, collect the commands in [Troubleshooting](45-troubleshooting.md)
 and check the physical-test gaps in [Getting Started](02-getting-started.md).

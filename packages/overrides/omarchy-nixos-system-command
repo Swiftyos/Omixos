@@ -1,0 +1,163 @@
+#!/bin/bash
+
+# Shared NixOS implementations for Quattro entry points whose Arch mechanics
+# map to generations, the Nix store, or declarative services on OmixOS.
+
+set -euo pipefail
+
+command_name=$(basename "$0")
+dry_run=${OMIXOS_SYSTEM_DRY_RUN:-0}
+user_name=${USER:-$(id -un)}
+
+case "$command_name" in
+  omarchy-apply-hardware)
+    echo "OmixOS hardware is applied by the active NixOS generation."
+    printf 'System: %s\n' "$(nixos-version 2>/dev/null || uname -sr)"
+    [[ ! -r /run/current-system/nixos-version ]] || printf 'Generation: %s\n' "$(readlink -f /run/current-system)"
+    ;;
+  omarchy-apply-lock)
+    test -r /etc/pam.d/omarchy-lock-password
+    echo "Quickshell lock authentication is managed by the active NixOS generation."
+    ;;
+  omarchy-apply-system|omarchy-reinstall|omarchy-reinstall-pkgs|omarchy-update-system-pkgs)
+    if (( dry_run )); then
+      echo "omarchy-update -y"
+    else
+      exec omarchy-update -y
+    fi
+    ;;
+  omarchy-reinstall-configs)
+    if (( dry_run )); then
+      echo "sudo systemctl restart home-manager-$user_name.service"
+    else
+      sudo systemctl restart "home-manager-$user_name.service"
+      omarchy-restart-shell || true
+    fi
+    ;;
+  omarchy-channel-current)
+    echo stable
+    ;;
+  omarchy-channel-set)
+    channel=${1:-}
+    if [[ $channel != stable ]]; then
+      echo "OmixOS currently publishes the stable Quattro/NixOS 26.05 channel only; requested: ${channel:-none}." >&2
+      exit 2
+    fi
+    echo "OmixOS is already on the stable channel."
+    ;;
+  omarchy-refresh-limine)
+    echo "Boot artifacts are owned by the NixOS generation and the target boot loader."
+    ;;
+  omarchy-refresh-pacman)
+    echo "Nix store metadata requires no Pacman mirror refresh."
+    ;;
+  omarchy-refresh-sddm)
+    echo "OmixOS uses greetd; its immutable login configuration is current."
+    ;;
+  omarchy-setup-direct-boot)
+    systemctl is-enabled greetd.service >/dev/null
+    echo "Direct graphical boot is enabled through greetd."
+    ;;
+  omarchy-snapshot)
+    case "${1:-}" in
+      create)
+        echo "The current NixOS generation is already an immutable rollback snapshot:"
+        readlink -f /run/current-system
+        ;;
+      restore)
+        if (( dry_run )); then
+          echo "sudo nixos-rebuild switch --rollback"
+        else
+          sudo nixos-rebuild switch --rollback
+        fi
+        ;;
+      *)
+        echo "Usage: omarchy-snapshot <create|restore>" >&2
+        exit 2
+        ;;
+    esac
+    ;;
+  omarchy-update-aur-pkgs)
+    echo "Updating mutable user-profile applications..."
+    if (( dry_run )); then
+      echo "nix profile upgrade .*"
+    else
+      nix --extra-experimental-features "nix-command flakes" profile upgrade '.*'
+    fi
+    ;;
+  omarchy-update-firmware)
+    if command -v fwupdmgr >/dev/null 2>&1; then
+      if (( dry_run )); then
+        echo "fwupdmgr refresh; sudo fwupdmgr update"
+      else
+        fwupdmgr refresh
+        sudo fwupdmgr update
+      fi
+    else
+      echo "This target receives firmware through its NixOS hardware generation."
+    fi
+    ;;
+  omarchy-update-keyring)
+    echo "Nix store signatures and trusted cache keys are managed by nix.conf."
+    ;;
+  omarchy-update-orphan-pkgs)
+    echo "User profile history:"
+    nix --extra-experimental-features "nix-command flakes" profile history || true
+    echo "NixOS garbage collection removes unreachable packages automatically."
+    ;;
+  omarchy-update-pacman-guard)
+    # There is no imperative system package manager to guard on NixOS.
+    exit 0
+    ;;
+  omarchy-update-pkg-prune)
+    if (( dry_run )); then
+      echo "nix profile wipe-history --older-than 30d"
+    else
+      nix --extra-experimental-features "nix-command flakes" profile wipe-history --older-than 30d
+    fi
+    ;;
+  omarchy-update-restart)
+    booted=$(readlink -f /run/booted-system 2>/dev/null || true)
+    current=$(readlink -f /run/current-system 2>/dev/null || true)
+    if [[ -n $booted && -n $current && $booted != "$current" ]]; then
+      if (( dry_run )); then
+        echo "reboot-required"
+      elif gum confirm "The active generation changed. Reboot now?"; then
+        omarchy-system-reboot
+      fi
+    fi
+    omarchy-restart-shell || true
+    ;;
+  omarchy-update-system-pkgs-when-conflicted)
+    echo "Nix realizes updates transactionally; partial package conflicts cannot be committed."
+    ;;
+  omarchy-update-time)
+    if (( dry_run )); then
+      echo "sudo systemctl restart systemd-timesyncd.service"
+    else
+      sudo systemctl restart systemd-timesyncd.service
+    fi
+    ;;
+  omarchy-upgrade-to-quattro)
+    omarchy-version
+    echo "OmixOS already tracks the pinned Quattro source revision."
+    ;;
+  omarchy-provision-owner)
+    echo "The OmixOS owner is declared by the active NixOS host configuration."
+    ;;
+  omarchy-provision-user)
+    echo "Home Manager owns idempotent user provisioning on OmixOS."
+    omarchy-provision-first-run
+    ;;
+  omarchy-sudo-reset)
+    if (( dry_run )); then
+      echo "sudo faillock --reset --user $user_name"
+    else
+      sudo faillock --reset --user "$user_name"
+    fi
+    ;;
+  *)
+    echo "No NixOS system adapter is registered for $command_name" >&2
+    exit 2
+    ;;
+esac

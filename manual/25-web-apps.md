@@ -5,8 +5,11 @@ The Quattro runtime can launch browser-backed apps in isolated windows with
 the user application directory is seeded into writable Home Manager state.
 
 The current OmixOS profile contains **Linear** and **Slack** web apps. It
-intentionally excludes **Basecamp** and **HEY** launchers. The generic ARM
-graphical test verifies the Linear desktop entry through `gtk-launch`.
+intentionally excludes **Basecamp** and **HEY** launchers. The desktop entries
+are installed into the profile/application paths and can be launched in the
+same session with `gtk-launch Linear.desktop` or `gtk-launch Slack.desktop`
+after the menu refresh. Both launch paths passed the graphical VM; physical
+Pi acceptance remains separate.
 
 ## Linear
 
