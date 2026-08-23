@@ -68,12 +68,26 @@ in
     '';
 
     fonts = {
-      enableDefaultPackages = true;
+      # The default package set adds unifont/freefont and the CJK serif family
+      # on top of what quattro actually names. Ship exactly the upstream font
+      # surface: JetBrainsMono Nerd Font, Liberation Sans/Serif, Noto with
+      # CJK sans and color emoji, plus DejaVu as the broad fallback.
+      enableDefaultPackages = false;
       packages = with pkgs; [
+        dejavu_fonts
+        liberation_ttf
         noto-fonts
         noto-fonts-cjk-sans
         noto-fonts-color-emoji
-        nerd-fonts.jetbrains-mono
+        # The full nerd-fonts family ships 96 files across three variants
+        # (~220 MiB). Quattro references only "JetBrainsMono Nerd Font"; keep
+        # that variant's complete weight set and drop the Mono/Propo/NL twins.
+        (pkgs.runCommand "nerd-fonts-jetbrains-mono-core" { } ''
+          fonts="$out/share/fonts/truetype/NerdFonts/JetBrainsMono"
+          mkdir -p "$fonts"
+          cp ${nerd-fonts.jetbrains-mono}/share/fonts/truetype/NerdFonts/JetBrainsMono/JetBrainsMonoNerdFont-*.ttf \
+            "$fonts/"
+        '')
         omarchy-fonts
       ];
       fontconfig.defaultFonts.monospace = [ "JetBrainsMono Nerd Font" ];

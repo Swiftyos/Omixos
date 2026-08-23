@@ -26,6 +26,22 @@
     };
   };
 
+  # Keep the image lean: a copy of the Nixpkgs source tree in the registry and
+  # NIX_PATH costs ~200 MiB and nothing OmixOS ships evaluates through it.
+  # omarchy-pkg-add pins Nixpkgs by explicit github reference instead.
+  nixpkgs.flake = {
+    setNixPath = false;
+    setFlakeRegistry = false;
+  };
+
+  # Man pages stay; the NixOS manual, info pages, and linked -doc outputs are
+  # dead weight on an appliance image.
+  documentation = {
+    doc.enable = false;
+    info.enable = false;
+    nixos.enable = false;
+  };
+
   networking.useDHCP = lib.mkDefault true;
   # None of the declared targets use ZFS for root. Avoid opportunistic pool
   # imports and opt into the safer default that NixOS will use from 26.11.
@@ -72,7 +88,6 @@
 
   environment.systemPackages = with pkgs; [
     git
-    vim
   ];
 
   system.stateVersion = "26.05";

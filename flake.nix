@@ -11,11 +11,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
-    # A recent 26.05 revision with a cached AArch64 WebKitGTK 2.52.5 closure.
-    # The primary pin currently misses that Hydra artifact, which would force
-    # every Pi image build to compile WebKit locally for Aether.
-    nixpkgs-aether.url = "github:NixOS/nixpkgs/f7a2e428f5d71c47a5a938a3c5ad7138bb291093";
-
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -69,7 +64,6 @@
     inputs@{
       self,
       nixpkgs,
-      nixpkgs-aether,
       home-manager,
       nixos-raspberrypi,
       nixos-apple-silicon,
@@ -161,7 +155,10 @@
         final: prev:
         (import ./packages {
           pkgs = final;
-          aetherPackage = nixpkgs-aether.legacyPackages.${final.system}.callPackage ./packages/aether.nix { };
+          # The primary pin now carries the cached AArch64 WebKitGTK 2.52.5
+          # closure Aether needs, so a second Nixpkgs evaluation would only
+          # duplicate the base library stack in every image.
+          aetherPackage = final.callPackage ./packages/aether.nix { };
           omarchySrc = omarchy-src;
           nixpkgsRef = "github:NixOS/nixpkgs/${nixpkgs.rev}";
           inherit omawrite-src omacut-src omacalc-src;

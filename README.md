@@ -36,6 +36,13 @@ the OmixOS `omarchy-hw-autoscale` session hook aligns the GTK/XWayland
 Pinning a scale with `omarchy-hyprland-monitor-scaling` disables the hook
 permanently.
 
+The image is kept deliberately lean: the Pi closure carries only the
+hardware's own firmware and graphics drivers (no LLVM software rendering, no
+full linux-firmware set), no accessibility speech voices, no embedded Nixpkgs
+source copy, and only the fonts quattro names. Everything else installs on
+demand through the app library. The trade-offs are listed in
+[docs/known-gaps.md](docs/known-gaps.md).
+
 ## Development
 
 On an AArch64 NixOS development machine:

@@ -95,13 +95,16 @@ re-pin, the display-autodetection feature, and the override bug-fix sweep:
   `omarchy-pkg-list` and adding the OmixOS `omarchy-hw-autoscale` command;
   the exact 31 unsupported commands are unchanged;
 - `pi4` system closure built successfully from the locked inputs;
-- the refreshed Pi image built as a 3,902,557,790-byte zstd artifact with
-  SHA-256
-  `d59f921bb3af39cf7af1bede889590fcee62248b853998ac1b1f683522329303`;
+- after the same-day image slimming (full linux-firmware -> Pi wireless
+  firmware, speech stack removed, LLVM-free V3D/VC4 Mesa, single Nixpkgs
+  evaluation, no embedded Nixpkgs source, curated fonts, 512 MiB firmware
+  partition) the `pi4` closure measured 5.04 GiB, down from 8.69 GiB;
+- the slim Pi image built as a 2,223,267,331-byte zstd artifact with SHA-256
+  `4a98563eb2e5f3f9c55cf9b69fad41562625c1d80aa1cd334129d8f3129fd578`;
 - the copied artifact matched the builder's hash, passed `zstd -t`, and
-  decompressed to a 13,159,354,368-byte raw image with SHA-256
-  `862aed112ff79cfcac307b3287e3e840819fffc10e24999286bc021b8de170f8`, whose
-  MBR carries the 1 GiB FAT32 firmware partition and the bootable 11.25 GiB
+  decompressed to a 7,808,258,048-byte raw image with SHA-256
+  `a858dfa5c4dd1b99201a50cfaa2ee346ba5ae690bc46e47f23d45ce636bdf40e`, whose
+  MBR carries the 512 MiB FAT32 firmware partition and the bootable 6.76 GiB
   Linux partition.
 
 ## CI readiness

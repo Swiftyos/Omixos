@@ -126,6 +126,19 @@ generic graphical testing, and physical testing are intentionally distinct.
 - [x] macOS VM preferred mode configurable via `OMIXOS_VM_XRES`/`OMIXOS_VM_YRES` (cocoa cannot resize the guest)
 - [x] Autoscale rewrite and environment verified in the graphical ARM VM
 
+## Image slimming (2026-08-23)
+
+- [x] Pi system closure reduced from 8.69 GiB to 5.04 GiB (-42%)
+- [x] Full linux-firmware replaced by the Broadcom 43455 wireless firmware the board uses
+- [x] speech-dispatcher/espeak/flite/mbrola accessibility voices (~800 MiB) removed
+- [x] Pi Mesa rebuilt with only V3D/VC4 GL and Broadcom Vulkan; LLVM (532 MiB) no longer in the closure
+- [x] Second Nixpkgs evaluation for Aether removed; WebKitGTK 2.52.5 now substitutes from the primary pin
+- [x] Embedded Nixpkgs source copy (registry/NIX_PATH, ~200 MiB) dropped
+- [x] Fonts limited to the quattro surface (JetBrainsMono Nerd Font variant, Liberation, Noto + CJK sans + emoji, DejaVu)
+- [x] gvfs built without SMB, ModemManager disabled, manual/info/-doc outputs and stray vim removed
+- [x] Firmware FAT partition 1 GiB -> 512 MiB
+- [x] Trade-offs documented in docs/known-gaps.md
+
 ## User-bug fixes (override audit, 2026-08-23)
 
 - [x] `omarchy-update` uses the Nix >= 2.19 `flake update --flake` form and rejects unknown hosts

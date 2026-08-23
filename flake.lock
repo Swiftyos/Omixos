@@ -171,22 +171,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-aether": {
-      "locked": {
-        "lastModified": 1785002762,
-        "narHash": "sha256-Y0BbgB3BLLHEUK88g4oSp3DerIx7rCX0iwICKJcY7/c=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "f7a2e428f5d71c47a5a938a3c5ad7138bb291093",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "f7a2e428f5d71c47a5a938a3c5ad7138bb291093",
-        "type": "github"
-      }
-    },
     "nixpkgs_2": {
       "locked": {
         "lastModified": 1786711500,
@@ -294,7 +278,6 @@
         "nixos-apple-silicon": "nixos-apple-silicon",
         "nixos-raspberrypi": "nixos-raspberrypi",
         "nixpkgs": "nixpkgs_2",
-        "nixpkgs-aether": "nixpkgs-aether",
         "omacalc-src": "omacalc-src",
         "omacut-src": "omacut-src",
         "omarchy-src": "omarchy-src",

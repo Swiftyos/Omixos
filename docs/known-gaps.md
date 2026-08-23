@@ -44,6 +44,31 @@
 - `omarchy update` documents flake updates and rebuilds instead of mutating the
   checkout automatically.
 
+## Image slimming trade-offs
+
+- The Pi ships only the Broadcom 43455 wireless firmware, not the full
+  redistributable linux-firmware set: plugging in a USB Wi-Fi, DVB, or other
+  firmware-hungry peripheral needs `hardware.enableRedistributableFirmware`
+  re-enabled in a host overlay and a rebuild.
+- The Pi's Mesa carries only the VC4/V3D GL and Broadcom Vulkan drivers; the
+  llvmpipe/lavapipe software fallback (~790 MiB of LLVM) is not included. If
+  V3D ever fails to probe, the console still works but no GL session starts.
+  The generic VM hosts keep stock Mesa for software-rendered testing.
+- The speech-dispatcher accessibility stack (espeak/flite/mbrola voices,
+  ~800 MiB) that nixos' graphical-desktop module enables by default is
+  disabled; screen-reader speech output is not available. VoxType dictation
+  is unaffected.
+- gvfs is built without the SMB backend; Nautilus does not browse Windows
+  shares. Trash, MTP, and archive mounting keep working.
+- No Nixpkgs source copy is embedded in the registry or NIX_PATH; `nix shell
+  nixpkgs#…` fetches from the network. `omarchy pkg` commands already pin an
+  explicit Nixpkgs reference and behave the same as before.
+- Only the "JetBrainsMono Nerd Font" variant quattro names is installed (its
+  full weight set); the Mono/Propo/no-ligature twins and the unifont/freefont
+  fallbacks are dropped. Extra families install on demand via
+  Install > Style > Font.
+- The NixOS manual, info pages, and -doc outputs are omitted; man pages stay.
+
 ## Raspberry Pi operational notes
 
 - The first `omarchy pkg install` search fetches and evaluates the pinned

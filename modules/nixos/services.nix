@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 
@@ -10,6 +11,14 @@ in
 {
   config = lib.mkIf cfg.enable {
     networking.networkmanager.enable = true;
+    # NetworkManager default-enables ModemManager; no OmixOS target carries a
+    # WWAN modem, and the qmi/mbim stack is ~90 MiB.
+    networking.modemmanager.enable = false;
+
+    # graphical-desktop.nix default-enables the speech-dispatcher stack, whose
+    # espeak/flite/mbrola voices weigh ~800 MiB. OmixOS ships VoxType for
+    # dictation and no screen reader; keep the image lean instead.
+    services.speechd.enable = false;
 
     hardware.bluetooth = {
       enable = true;
@@ -35,7 +44,12 @@ in
 
       dbus.enable = true;
       gnome.gnome-keyring.enable = true;
-      gvfs.enable = true;
+      # Nautilus needs gvfs for trash/MTP/archives; the SMB backend alone
+      # drags in a ~113 MiB samba closure nobody browses from a Pi desktop.
+      gvfs = {
+        enable = true;
+        package = pkgs.gvfs.override { samba = null; };
+      };
       openssh.enable = lib.mkDefault true;
       tailscale.enable = true;
       power-profiles-daemon.enable = true;

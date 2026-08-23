@@ -61,6 +61,10 @@ in
 
   image.baseName = lib.mkForce "omixos-pi4";
 
+  # The firmware FAT partition carries ~80 MiB of firmware plus U-Boot; the
+  # default 1 GiB is dead space in every flashed image.
+  sdImage.firmwareSize = lib.mkForce 512;
+
   # No password or SSH private material is embedded in the image. The local
   # graphical session auto-starts; set a password from a trusted console before
   # relying on screen unlock or sudo, and add an SSH public key declaratively.
