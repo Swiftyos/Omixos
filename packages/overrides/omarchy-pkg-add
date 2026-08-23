@@ -28,6 +28,8 @@ record_package() {
   mv "$temporary_state" "$state_file"
 }
 
+exit_status=0
+
 for requested in "$@"; do
   package="${requested%%[<>=]*}"
   attr="$package"
@@ -49,7 +51,8 @@ for requested in "$@"; do
 
   if [[ $install_mode == unsupported ]]; then
     printf '%s is unavailable on this OmixOS target: %s\n' "$display_name" "$install_url" >&2
-    exit 3
+    exit_status=3
+    continue
   fi
 
   if [[ $install_mode == webapp ]]; then
@@ -63,7 +66,8 @@ for requested in "$@"; do
     echo "Installing $display_name from the OmixOS pinned package closure..."
     if ! "${nix_cli[@]}" profile add "${profile_args[@]}" "$install_url"; then
       echo "Unable to install the pinned OmixOS package '$package'." >&2
-      exit 2
+      exit_status=2
+      continue
     fi
     record_package "$package" "$attr"
     continue
@@ -77,10 +81,12 @@ The application may be unavailable for $(uname -m), require a service-level
 NixOS module, or use a different Nixpkgs attribute. No partial package state
 was recorded.
 EOF
-    exit 2
+    exit_status=2
+    continue
   fi
 
   record_package "$package" "$attr"
 done
 
 omarchy-menu refresh >/dev/null 2>&1 || true
+exit "$exit_status"

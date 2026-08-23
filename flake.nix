@@ -32,14 +32,15 @@
     nixos-apple-silicon.url = "github:nix-community/nixos-apple-silicon/main";
 
     omarchy-src = {
-      url = "github:basecamp/omarchy/30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec";
+      url = "github:basecamp/omarchy/f4f3d4c71a0a5c392b20ce05291531881a1b3bfe";
       flake = false;
     };
 
-    # Exact source revision in omacom-io/omarchy-pkgs for this quattro
-    # baseline. The tagged Nixpkgs 0.3.0 source is twenty commits older.
+    # Upstream quattro moved from its temporary quickshell-git snapshot back to
+    # the packaged 0.3.1 release, whose `kill` waits for the instance to exit.
+    # Nixpkgs 26.05 still carries 0.3.0, so pin the v0.3.1 tag here.
     quickshell-src = {
-      url = "git+https://git.outfoxxed.me/quickshell/quickshell?rev=28771c7c74b42e20afca0b1b63980cb46515537c";
+      url = "git+https://git.outfoxxed.me/quickshell/quickshell?rev=1a4716cde794a59928d9d9fc15f2afc7a95de360";
       flake = false;
     };
 
@@ -167,7 +168,7 @@
         })
         // {
           quickshell = prev.quickshell.overrideAttrs (_old: {
-            version = "0.3.0.r20.g28771c7";
+            version = "0.3.1";
             src = quickshell-src;
           });
           voxtype = voxtype.packages.${final.system}.default;

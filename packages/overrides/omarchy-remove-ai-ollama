@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# omarchy:summary=Remove Ollama along with every model it pulled.
+
+set -e
+
+# OmixOS installs Ollama into the user profile; there is no system service or
+# /var/lib/ollama to clean up unless the operator declared services.ollama in
+# the NixOS configuration, which a rebuild manages instead.
+omarchy-pkg-drop ollama ollama-cuda ollama-rocm ollama-vulkan
+
+rm -rf "$HOME/.ollama"
+
+echo ""
+echo "Ollama and its models have been removed."

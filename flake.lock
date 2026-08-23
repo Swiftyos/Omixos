@@ -240,17 +240,17 @@
     "omarchy-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1786881090,
-        "narHash": "sha256-2y2Q9Y4mDFrpTl7+qMdhUrOTioCMzulur0jHcRxxT+A=",
+        "lastModified": 1787508122,
+        "narHash": "sha256-uHZUMDElatgFUHPo33JHEqptGSZmMWzouLj2gaXlfhg=",
         "owner": "basecamp",
         "repo": "omarchy",
-        "rev": "30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec",
+        "rev": "f4f3d4c71a0a5c392b20ce05291531881a1b3bfe",
         "type": "github"
       },
       "original": {
         "owner": "basecamp",
         "repo": "omarchy",
-        "rev": "30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec",
+        "rev": "f4f3d4c71a0a5c392b20ce05291531881a1b3bfe",
         "type": "github"
       }
     },
@@ -274,16 +274,16 @@
     "quickshell-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1785704021,
-        "narHash": "sha256-eQtczKMAS4ItlB4pr1B3MqBZiyRVl2nkqNdtyRSQMa8=",
+        "lastModified": 1787279335,
+        "narHash": "sha256-CLX2Zp5i5BuLbOxNOkwRd9YY84IOrACNxBV79o9/F9Y=",
         "ref": "refs/heads/master",
-        "rev": "28771c7c74b42e20afca0b1b63980cb46515537c",
-        "revCount": 835,
+        "rev": "1a4716cde794a59928d9d9fc15f2afc7a95de360",
+        "revCount": 846,
         "type": "git",
         "url": "https://git.outfoxxed.me/quickshell/quickshell"
       },
       "original": {
-        "rev": "28771c7c74b42e20afca0b1b63980cb46515537c",
+        "rev": "1a4716cde794a59928d9d9fc15f2afc7a95de360",
         "type": "git",
         "url": "https://git.outfoxxed.me/quickshell/quickshell"
       }

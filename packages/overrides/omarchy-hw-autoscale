@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# omarchy:summary=Align the seeded display scale with the monitor Hyprland detected
+# omarchy:examples=omarchy-hw-autoscale
+
+# OmixOS runs on displays upstream never assumed: the seeded monitors.lua
+# carries the hi-DPI laptop default GDK_SCALE=2, while a Pi 4 on a 1080p HDMI
+# monitor needs 1. Hyprland already detects the resolution and picks the
+# monitor scale ("mode = preferred", "scale = auto"); this brings the GTK/
+# XWayland integer scale in line with that detection at session start.
+#
+# The command only ever replaces the seeded default or a value it wrote
+# itself. Pinning a monitor scale (omarchy-hyprland-monitor-scaling, or any
+# hand edit of omarchy_monitor_scale) disables it permanently.
+
+monitor_lua="$HOME/.config/hypr/monitors.lua"
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/omarchy"
+marker="$state_dir/autoscale.gdk"
+seed_default=2
+
+[[ -f $monitor_lua ]] || exit 0
+
+# A pinned scale means the user chose; never fight them.
+grep -q '^local omarchy_monitor_scale = "auto"$' "$monitor_lua" || exit 0
+
+current_gdk="$(sed -n 's/^local omarchy_gdk_scale = \([0-9][0-9]*\)$/\1/p' "$monitor_lua" | head -n1)"
+[[ -n $current_gdk ]] || exit 0
+
+# Hyprland may still be bringing monitors up when the session hooks fire.
+scale=""
+for _ in {1..20}; do
+  scale="$(hyprctl monitors -j 2>/dev/null |
+    jq -er '(map(select(.focused)) + .)[0].scale' 2>/dev/null)"
+  [[ -n $scale ]] && break
+  sleep 0.5
+done
+[[ -n $scale ]] || exit 0
+
+target="$(awk -v s="$scale" 'BEGIN { printf "%d", int(s + 0.5) }')"
+((target >= 1)) || target=1
+
+# Replace only the seeded default or our own previous answer, so a hand-edited
+# GDK scale survives even while the monitor scale stays "auto".
+previous="$(cat "$marker" 2>/dev/null)"
+if [[ $current_gdk != "$seed_default" && $current_gdk != "$previous" ]]; then
+  exit 0
+fi
+
+mkdir -p "$state_dir"
+printf '%s\n' "$target" >"$marker"
+
+[[ $current_gdk == "$target" ]] && exit 0
+
+sed -i "s|^local omarchy_gdk_scale = .*|local omarchy_gdk_scale = ${target}|" "$monitor_lua"
+
+if ! omarchy-hyprland-reload-guard paused 2>/dev/null; then
+  hyprctl reload >/dev/null 2>&1 || true
+fi
+
+# Session apps launch through uwsm/systemd, which imported the stale value
+# before this ran; refresh the live environment for both launch paths.
+systemctl --user set-environment "GDK_SCALE=${target}" 2>/dev/null || true
+dbus-update-activation-environment --systemd GDK_SCALE="${target}" 2>/dev/null || true

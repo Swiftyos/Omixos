@@ -48,7 +48,8 @@ profile_match="$(jq -r --arg path "$resolved_desktop" '
   | select(any(.value.storePaths[]; . as $store | $path == $store or ($path | startswith($store + "/"))))
   | [
       .key,
-      (.value.attrPath
+      # Store-path installs (install_mode=store) carry no attrPath at all.
+      ((.value.attrPath // "")
         | sub("^legacyPackages\\.[^.]+\\."; "")
         | sub("^packages\\.[^.]+\\."; ""))
     ]
@@ -63,7 +64,9 @@ if [[ -n $profile_match ]]; then
   state_file="${XDG_STATE_HOME:-$HOME/.local/state}/omixos/packages.tsv"
   if [[ -f $state_file ]]; then
     temporary_state="$(mktemp "${state_file}.XXXXXX")"
-    awk -F '\t' -v attr="$profile_attr" '$2 != attr' "$state_file" >"$temporary_state"
+    awk -F '\t' -v attr="$profile_attr" -v name="$profile_name" \
+      '!((attr != "" && $2 == attr) || $1 == name || $2 == name)' \
+      "$state_file" >"$temporary_state"
     mv "$temporary_state" "$state_file"
   fi
   omarchy-menu refresh >/dev/null 2>&1 || true

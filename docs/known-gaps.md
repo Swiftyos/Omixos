@@ -44,6 +44,17 @@
 - `omarchy update` documents flake updates and rebuilds instead of mutating the
   checkout automatically.
 
+## Raspberry Pi operational notes
+
+- The first `omarchy pkg install` search fetches and evaluates the pinned
+  Nixpkgs revision; on a 4 GB Pi this takes minutes and several GB of RAM
+  before the evaluation cache warms, and package search requires the network.
+- `omarchy update` inherits upstream's 10 GiB free-space requirement, which is
+  tight on small SD cards; a USB 3 SSD root is recommended for sustained use.
+- `omarchy-hw-autoscale` reconciles GDK_SCALE at session start only; plugging
+  a different display into a running session keeps the previous integer scale
+  until the next login (Hyprland's own monitor scale still follows hotplug).
+
 ## Application gaps
 
 - Ghostty is the verified default, Foot remains a fallback, and Neovim and
@@ -65,7 +76,14 @@
   microphone capture and typing remain a physical Pi acceptance item.
 - Heavy media and x86-only gaming/Windows applications remain outside the Pi
   target. Their command paths return architecture-specific explanations where
-  no AArch64 implementation exists.
+  no AArch64 implementation exists. Of the quattro Install > AI catalog,
+  Ollama installs and runs natively (CPU inference); ChatGPT and Grok are
+  provided as web applications; LM Studio, T3 Code, and Minecraft return
+  curated no-ARM64 explanations. Cliamp has no Nixpkgs build yet and is
+  explained as unsupported rather than failing raw.
+- The Antigravity (`agy`), `hey`, and `ori` agent CLIs are not preinstalled as
+  mise stubs the way the Arch installer provisions them; mise ships in the
+  core profile and `omarchy-mise-install` provisions each tool on first use.
 - Live Chromium chrome retinting is deferred: the upstream helper writes a
   managed policy under mutable `/etc`, while OmixOS keeps system policy
   declarative. Theme state, shell colors, applications, and backgrounds still

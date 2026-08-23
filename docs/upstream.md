@@ -1,6 +1,6 @@
 # Upstream Omarchy baseline
 
-Inspected on **2026-08-16**.
+Re-pinned on **2026-08-23** (first baseline `30f7a060` inspected 2026-08-16).
 
 | Field | Value |
 | --- | --- |
@@ -8,12 +8,20 @@ Inspected on **2026-08-16**.
 | Fetch/push remote | `git@github.com:basecamp/omarchy.git` |
 | Branch | `quattro` |
 | Upstream tracking ref | `origin/quattro` |
-| Commit | `30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec` |
-| Commit date | `2026-08-16T04:51:30-07:00` |
-| Commit subject | `Update tokyo-night winding-road background (#7057)` |
+| Commit | `f4f3d4c71a0a5c392b20ce05291531881a1b3bfe` |
+| Commit date | `2026-08-23T20:02:02+02:00` |
+| Commit subject | `Add plan for finishing Sunshine/Moonlight into a remote desktop` |
 | Ahead/behind | `+0 / -0` |
 | Worktree status | Tracked tree clean; untracked `.DS_Store` metadata present |
-| First OmixOS commit targeting it | `40367f0ed0c66bdb4f334eed506d025b29f41665` |
+| First OmixOS commit targeting it | `40367f0ed0c66bdb4f334eed506d025b29f41665` (baseline `30f7a060`) |
+
+The 2026-08-23 re-pin absorbed the 39 upstream commits between `30f7a060`
+and `f4f3d4c7`: the theme-staging and yt-dlp title security fixes, UTF-16
+clipboard decoding and the larger history, webp theme backgrounds plus the
+`qt6-imageformats` requirement, the Quake console scratchpad, the packaged
+Quickshell 0.3.1 floor, the OWE Wi-Fi fix, Remove > AI, T3 Code, the
+Antigravity/Ori agent switch, and the About logo animation with its
+`fastfetch` layout under `/etc/fastfetch`.
 
 The flake's `omarchy-src` input pins this exact commit. A sibling path is used
 only with an explicit development `--override-input`.

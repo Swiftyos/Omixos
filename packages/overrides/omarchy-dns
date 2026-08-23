@@ -74,29 +74,46 @@ if (( dry_run )); then
   exit 0
 fi
 
+modified=0
+failed=0
 while IFS=: read -r uuid type; do
+  [[ -n $uuid ]] || continue
   case "$type" in
     802-3-ethernet|802-11-wireless) ;;
     *) continue ;;
   esac
 
   if [[ $provider == DHCP ]]; then
-    nmcli connection modify "$uuid" \
+    if nmcli connection modify "$uuid" \
       ipv4.ignore-auto-dns no ipv4.dns "" \
-      ipv6.ignore-auto-dns no ipv6.dns ""
+      ipv6.ignore-auto-dns no ipv6.dns ""; then
+      ((++modified))
+    else
+      ((++failed))
+    fi
   else
-    nmcli connection modify "$uuid" \
+    if nmcli connection modify "$uuid" \
       ipv4.ignore-auto-dns yes ipv4.dns "$ipv4" \
-      ipv6.ignore-auto-dns yes ipv6.dns "$ipv6"
+      ipv6.ignore-auto-dns yes ipv6.dns "$ipv6"; then
+      ((++modified))
+    else
+      ((++failed))
+    fi
   fi
 done < <(nmcli -t -f UUID,TYPE connection show)
 
 while IFS=: read -r device type state; do
   [[ $state == connected ]] || continue
   case "$type" in
-    wifi|ethernet) nmcli device reapply "$device" >/dev/null || true ;;
+    wifi|ethernet) nmcli device reapply "$device" >/dev/null 2>&1 || true ;;
   esac
 done < <(nmcli -t -f DEVICE,TYPE,STATE device status)
+
+if ((failed > 0 && modified == 0)); then
+  echo "No connection profile accepted the DNS change; the previous provider remains active." >&2
+  exit 1
+fi
+((failed == 0)) || echo "Warning: $failed connection profile(s) kept their previous DNS settings." >&2
 
 mkdir -p "$state_dir"
 printf '%s\n' "$provider" >"$state_file"

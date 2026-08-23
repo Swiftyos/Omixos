@@ -104,6 +104,43 @@ generic graphical testing, and physical testing are intentionally distinct.
 - [x] Apple-silicon USB ISO structure and AArch64 EFI boot menu verified
 - [ ] Physical M2 acceptance completed
 
+## Quattro f4f3d4c7 re-pin (2026-08-23)
+
+- [x] `omarchy-src` re-pinned from `30f7a060` to checkout HEAD `f4f3d4c7` (39 commits)
+- [x] Quickshell floor moved to the packaged 0.3.1 (`kill` waits for exit), pinned by tag
+- [x] webp theme backgrounds decode in the shell via the qtimageformats plugin
+- [x] Theme-staging writability re-anchored around the hardened repo-theme staging path
+- [x] Theme re-stage security migration (1787481315) mirrored into activation
+- [x] New Remove > AI surface wired through Nix-native `omarchy-pkg-drop` (Ollama override)
+- [x] Package map covers grok-bot, t3code-bin, ollama-vulkan, cliamp, minecraft-launcher, and the native Qt trio; x86-only rows curated as unsupported
+- [x] `fastfetch` and `/etc/fastfetch/config.jsonc` provided for the About animation
+- [x] Download Video stack (yt-dlp, mpv, ffmpeg) moved into the core profile
+- [x] Command surface re-inventoried: 433 upstream + `omarchy-pkg-list` + `omarchy-hw-autoscale` - HEY handler = 434
+
+## Display autodetection
+
+- [x] `omarchy-hw-autoscale` aligns GDK_SCALE with the monitor scale Hyprland detected at session start
+- [x] Hook runs from the session-start provisioning path; manual scale pins disable it permanently
+- [x] Live session environment refreshed (`systemctl --user set-environment`, D-Bus activation env)
+- [x] Pi firmware config confirmed EDID-driven (`disable_overscan=1`, `display_auto_detect=1`, full KMS)
+- [x] macOS VM preferred mode configurable via `OMIXOS_VM_XRES`/`OMIXOS_VM_YRES` (cocoa cannot resize the guest)
+- [x] Autoscale rewrite and environment verified in the graphical ARM VM
+
+## User-bug fixes (override audit, 2026-08-23)
+
+- [x] `omarchy-update` uses the Nix >= 2.19 `flake update --flake` form and rejects unknown hosts
+- [x] `omarchy-update-available` no longer lights a phantom badge on fresh installs, cannot hang the bar on a dead remote, and counts real behind-commits
+- [x] VoxType keybindings guard on the binary as well as the disable toggle (F9 no longer swallowed when dictation is off)
+- [x] Menu package guards parse all six package-map columns (webapp/store rows were invisible)
+- [x] `omarchy-pkg-add` continues past per-package failures; preinstall restore reports failures and keeps the removed marker
+- [x] `omarchy-pkg-drop` resolves real profile element keys, tolerates missing elements, and always cleans recorded state
+- [x] `omarchy-remove-launcher-entry` handles store-mode profile entries (Aether) without jq crashes
+- [x] `omarchy-version` reports the built runtime's actual upstream revision
+- [x] Browser defaults auto-install missing browsers through the floating-terminal flow like upstream
+- [x] DNS switching survives per-connection failures and keeps the menu checkmark honest
+- [x] fzf/gum cancels are no-ops in package pickers; multi-word package search works
+- [x] Webapp launches use `--collect --quiet` transient units (no failed-unit debris)
+
 ## Deferred
 
 - [ ] x86_64-linux

@@ -5,7 +5,7 @@ The primary target is Raspberry Pi 4 (`aarch64-linux`); an Apple Silicon M2
 host and a generic ARM64 development host share the same desktop modules.
 
 The behavioral baseline is Omarchy commit
-`30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec`. This is the current Quickshell
+`f4f3d4c71a0a5c392b20ce05291531881a1b3bfe`. This is the current Quickshell
 and Lua-Hyprland architecture. OmixOS does not substitute the historical
 Waybar/Wofi desktop and does not emulate Pacman or AUR.
 
@@ -27,6 +27,14 @@ search the pinned Nixpkgs revision, install an application into the user's Nix
 profile, discover its desktop entry without logging out, launch it with
 `gtk-launch`, and remove it again. VoxType dictation and the Aether app store
 are included as native AArch64 integrations.
+
+Display geometry is autodetected end to end: the kernel reads the EDID
+preferred mode, Hyprland applies it (`mode = preferred`, `scale = auto`), and
+the OmixOS `omarchy-hw-autoscale` session hook aligns the GTK/XWayland
+`GDK_SCALE` with the monitor Hyprland actually detected — so a Pi 4 on a
+1080p HDMI display gets 1x apps instead of upstream's hi-DPI laptop default.
+Pinning a scale with `omarchy-hyprland-monitor-scaling` disables the hook
+permanently.
 
 ## Development
 

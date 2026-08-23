@@ -1,4 +1,8 @@
 #!/bin/bash
 
 # Home Manager activation performs idempotent, writable-state seeding.
+# Session-start reconciliation that needs the live compositor happens here:
+# align the seeded display scale with the monitor Hyprland detected.
+omarchy-hw-autoscale || true
+
 exit 0

@@ -119,6 +119,33 @@ pkgs.testers.runNixOSTest {
         timeout=60,
     )
 
+    # Display autodetection: the virtio GPU reports no physical size, Hyprland
+    # picks monitor scale 1, and omarchy-hw-autoscale must align the seeded
+    # GDK_SCALE=2 laptop default with the detected monitor at session start,
+    # for the config, future app launches, and the live session environment.
+    machine.succeed(
+        as_omix("timeout 10s hyprctl monitors -j | jq -e '.[0].scale == 1'")
+    )
+    machine.wait_until_succeeds(
+        "grep -Fx 'local omarchy_gdk_scale = 1' /home/omix/.config/hypr/monitors.lua",
+        timeout=120,
+    )
+    machine.wait_until_succeeds(
+        as_omix("systemctl --user show-environment | grep -Fx GDK_SCALE=1"),
+        timeout=60,
+    )
+    machine.succeed("grep -Fx '1' /home/omix/.local/state/omarchy/autoscale.gdk")
+
+    # A fresh install has no source checkout; the update badge must stay off.
+    machine.fail(as_omix("omarchy-update-available"))
+    # No git-cloned themes exist, so Update > Extra Themes stays hidden.
+    machine.fail(as_omix("omarchy-theme-extras"))
+    # Clipboard capture decodes UTF-16 through perl Encode/JSON::PP.
+    machine.succeed(as_omix("perl -MEncode -MJSON::PP -e 1"))
+    # About renders through the pinned system fastfetch layout.
+    machine.succeed("test -f /etc/fastfetch/config.jsonc")
+    machine.succeed(as_omix("fastfetch --logo none >/dev/null"))
+
     # VoxType ships with the exact Quattro config and an offline Whisper
     # model. Its daemon, bar status, compositor bindings, and remove/install
     # lifecycle must all agree.
@@ -193,6 +220,16 @@ pkgs.testers.runNixOSTest {
     )
     machine.succeed(
         "test -f \"$(readlink -f /home/omix/.local/state/omarchy/current/background)\""
+    )
+    # Upstream converted every built-in background to webp; the shell decodes
+    # them through the qtimageformats plugin wired into omarchy-shell-session.
+    machine.succeed(
+        "readlink -f /home/omix/.local/state/omarchy/current/background | grep -F .webp"
+    )
+    # Staged copies of store themes must remain writable user state, or the
+    # next switch would wedge on read-only directories.
+    machine.succeed(
+        "test -w /home/omix/.local/state/omarchy/current/theme/backgrounds"
     )
     machine.wait_until_succeeds(
         as_omix("omarchy-shell shell ping | grep -Fx ok"),

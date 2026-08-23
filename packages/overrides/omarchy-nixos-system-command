@@ -16,7 +16,10 @@ case "$command_name" in
     [[ ! -r /run/current-system/nixos-version ]] || printf 'Generation: %s\n' "$(readlink -f /run/current-system)"
     ;;
   omarchy-apply-lock)
-    test -r /etc/pam.d/omarchy-lock-password
+    if [[ ! -r /etc/pam.d/omarchy-lock-password ]]; then
+      echo "The omarchy-lock-password PAM service is missing from this generation; rebuild the host configuration." >&2
+      exit 1
+    fi
     echo "Quickshell lock authentication is managed by the active NixOS generation."
     ;;
   omarchy-apply-system|omarchy-reinstall|omarchy-reinstall-pkgs|omarchy-update-system-pkgs)
@@ -55,7 +58,10 @@ case "$command_name" in
     echo "OmixOS uses greetd; its immutable login configuration is current."
     ;;
   omarchy-setup-direct-boot)
-    systemctl is-enabled greetd.service >/dev/null
+    if ! systemctl is-enabled greetd.service >/dev/null 2>&1; then
+      echo "greetd is not enabled on this host; direct graphical boot is configured declaratively." >&2
+      exit 1
+    fi
     echo "Direct graphical boot is enabled through greetd."
     ;;
   omarchy-snapshot)

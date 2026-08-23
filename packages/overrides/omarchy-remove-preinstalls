@@ -24,11 +24,12 @@ if [[ ${OMIXOS_PREINSTALLS_REMOVE_CONFIRM:-0} == 1 ]] || \
   touch "$state_dir/preinstalls-removed"
 
   rm -f \
-    "$HOME/.local/bin/codex" "$HOME/.local/bin/claude" "$HOME/.local/bin/gemini" \
+    "$HOME/.local/bin/codex" "$HOME/.local/bin/claude" "$HOME/.local/bin/agy" \
     "$HOME/.local/bin/copilot" "$HOME/.local/bin/gh" "$HOME/.local/bin/opencode" \
     "$HOME/.local/bin/playwright" "$HOME/.local/bin/playwright-cli" "$HOME/.local/bin/pi" \
-    "$HOME/.local/bin/omp" "$HOME/.local/bin/grok" "$HOME/.local/bin/crush" \
-    "$HOME/.local/bin/ghui" "$HOME/.local/bin/hunk"
+    "$HOME/.local/bin/omp" "$HOME/.local/bin/ori" "$HOME/.local/bin/hey" \
+    "$HOME/.local/bin/grok" "$HOME/.local/bin/crush" "$HOME/.local/bin/ghui" \
+    "$HOME/.local/bin/hunk"
 
   for desktop_id in omacalc omacut omawrite; do
     cat >"$applications_dir/$desktop_id.desktop" <<EOF

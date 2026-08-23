@@ -14,6 +14,13 @@ profile_args=()
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/omixos"
 state_file="$state_dir/packages.tsv"
 
+forget_package() {
+  local forgotten="$1" temporary_state
+  temporary_state="$(mktemp "$state_dir/packages.tsv.XXXXXX")"
+  awk -F '\t' -v package="$forgotten" '$1 != package' "$state_file" >"$temporary_state"
+  mv "$temporary_state" "$state_file"
+}
+
 for requested in "$@"; do
   package="${requested%%[<>=]*}"
   attr="$package"
@@ -45,16 +52,34 @@ for requested in "$@"; do
 
   if [[ $install_mode == webapp ]]; then
     omarchy-webapp-remove "$display_name" 2>/dev/null || true
-    temporary_state="$(mktemp "$state_dir/packages.tsv.XXXXXX")"
-    awk -F '\t' -v package="$package" '$1 != package' "$state_file" >"$temporary_state"
-    mv "$temporary_state" "$state_file"
+    forget_package "$package"
     continue
   fi
 
-  "${nix_cli[@]}" profile remove "${profile_args[@]}" "$attr"
-  temporary_state="$(mktemp "$state_dir/packages.tsv.XXXXXX")"
-  awk -F '\t' -v package="$package" '$1 != package' "$state_file" >"$temporary_state"
-  mv "$temporary_state" "$state_file"
+  if [[ $install_mode == unsupported ]]; then
+    forget_package "$package"
+    continue
+  fi
+
+  # The profile element key is not always the attribute path: store-mode
+  # installs have no attrPath at all and flake installs key by name. Resolve
+  # the actual element so removal works from either direction, and clean the
+  # recorded state even when the element is already gone (pruned generations,
+  # rollbacks, manual removal).
+  element_key="$("${nix_cli[@]}" profile list "${profile_args[@]}" --json 2>/dev/null |
+    jq -r --arg attr "$attr" --arg package "$package" '
+      .elements | to_entries[] |
+      select(
+        .key == $package or .key == $attr or
+        ((.value.attrPath // "") | . == $attr or endswith("." + $attr))
+      ) | .key' 2>/dev/null | head -n 1 || true)"
+
+  if [[ -n $element_key ]]; then
+    if ! "${nix_cli[@]}" profile remove "${profile_args[@]}" "$element_key"; then
+      echo "Unable to remove '$package' from the user profile; forgetting its record anyway." >&2
+    fi
+  fi
+  forget_package "$package"
 done
 
 omarchy-menu refresh >/dev/null 2>&1 || true

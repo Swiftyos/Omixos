@@ -44,6 +44,13 @@ brew install qemu
 OMIXOS_VM_HEADLESS=1 ./scripts/macos-vm install
 ```
 
+QEMU's cocoa display never propagates window resizes to the guest, so the
+graphical VM runs at the virtio GPU's preferred mode. The script defaults that
+mode to 1920x1080; set `OMIXOS_VM_XRES`/`OMIXOS_VM_YRES` to your screen's
+pixel size before `boot` for a full-screen-matching session. Hyprland follows
+the mode automatically (`mode = preferred`), and the OmixOS autoscale hook
+aligns `GDK_SCALE` with it at login.
+
 At the installer console, partition only `/dev/vda`:
 
 ```console
@@ -96,7 +103,9 @@ from disk alone, applied the final
 units; greetd, NetworkManager, D-Bus, SSH, Hyprland, Wayland, monitor, bar,
 shell, notifications, Docker, and `/dev/dri/card0` plus `renderD128` were
 healthy. The verified Omarchy revision was
-`30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec`.
+`30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec`; the checkout now pins
+`f4f3d4c71a0a5c392b20ce05291531881a1b3bfe`, and the recorded artifact
+hashes below predate that re-pin until the image is rebuilt.
 
 The final reproducible image is a 10,928,783,360-byte qcow2 with a 128 GiB
 virtual size and SHA-256

@@ -7,7 +7,7 @@ set -euo pipefail
 package_map="${OMARCHY_PATH:?}/lib/omixos-package-map.tsv"
 state_file="${XDG_STATE_HOME:-$HOME/.local/state}/omixos/packages.tsv"
 
-while IFS=$'\t' read -r package _attr command_name; do
+while IFS=$'\t' read -r package _attr command_name _rest; do
   if [[ $command_name == desktop:* ]] && [[ -f ${XDG_DATA_HOME:-$HOME/.local/share}/applications/${command_name#desktop:} ]]; then
     printf '%s\n' "$package"
     continue

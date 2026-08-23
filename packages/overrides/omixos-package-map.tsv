@@ -5,29 +5,36 @@ alacritty	alacritty	alacritty
 bitwarden	bitwarden-desktop	bitwarden
 bitwarden-cli	bitwarden-cli	bw
 brave-bin	brave	brave
-brave-origin-bin	brave	brave
+brave-origin-bin	brave	brave-origin	unsupported	Brave Origin has no separate Nixpkgs package	Brave Origin
 chromium	chromium	chromium
+cliamp	cliamp	cliamp	unsupported	Cliamp is packaged only for Arch Linux today	Cliamp
 cursor-bin	code-cursor	cursor
 dropbox	dropbox	desktop:Dropbox.desktop	webapp	https://www.dropbox.com/home	Dropbox
 firefox	firefox	firefox
 foot	foot	foot
 ghostty	ghostty	ghostty
-google-chrome	google-chrome	google-chrome-stable
+google-chrome	google-chrome	google-chrome-stable	unsupported	Google publishes no ARM64 Linux Chrome build	Google Chrome
+grok-bot	grok-bot	desktop:Grok.desktop	webapp	https://grok.com	Grok
 helix	helix	hx
 heroic-games-launcher-bin	heroic	heroic	unsupported	requires the x86/i686 game runtime	Heroic Games Launcher
 kitty	kitty	kitty
 kdenlive	kdePackages.kdenlive	kdenlive
 libreoffice-fresh	libreoffice	libreoffice
 libfido2	libfido2	fido2-token
-lmstudio-bin	lmstudio	lm-studio
+lmstudio-bin	lmstudio	lm-studio	unsupported	LM Studio publishes no ARM64 Linux build	LM Studio
 lutris	lutris	lutris	unsupported	its Nixpkgs game runtime is x86-only	Lutris
 microsoft-edge-stable-bin	microsoft-edge	microsoft-edge	unsupported	Microsoft does not publish an ARM64 Linux build	Microsoft Edge
+minecraft-launcher	minecraft-launcher	minecraft-launcher	unsupported	Mojang publishes no ARM64 Linux launcher	Minecraft Launcher
 moonlight-qt	moonlight-qt	moonlight
 neovim	neovim	nvim
 nordvpn-bin	nordvpn	nordvpn
 ollama	ollama	ollama
 ollama-cuda	ollama-cuda	ollama
 ollama-rocm	ollama-rocm	ollama
+ollama-vulkan	ollama	ollama
+omacalc	omacalc	omacalc	store	@omacalcStore@	Omacalc
+omacut	omacut	omacut	store	@omacutStore@	Omacut
+omawrite	omawrite	omawrite	store	@omawriteStore@	Omawrite
 obs-studio	obs-studio	obs
 obsidian	obsidian	obsidian
 openai-codex-desktop	codex-desktop	desktop:ChatGPT.desktop	webapp	https://chatgpt.com	ChatGPT
@@ -38,6 +45,7 @@ php	php	php
 retroarch	retroarch	retroarch
 signal-desktop	signal-desktop	signal-desktop
 spotify	spotify	desktop:Spotify.desktop	webapp	https://open.spotify.com	Spotify
+t3code-bin	t3code	t3code	unsupported	T3 Code publishes no ARM64 Linux build	T3 Code
 steam	steam	steam	unsupported	Steam for Linux requires the x86/i686 runtime	Steam
 sunshine	sunshine	sunshine
 sublime-text-4	sublime4	sublime_text

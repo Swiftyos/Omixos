@@ -9,16 +9,6 @@
 }:
 
 let
-  runtime = pkgs.callPackage ./omarchy-runtime.nix {
-    inherit nixpkgsRef omarchySrc;
-    inherit aetherPackage;
-  };
-  shell = pkgs.callPackage ./omarchy-shell.nix {
-    omarchy-runtime = runtime;
-  };
-  fonts = pkgs.callPackage ./omarchy-fonts.nix {
-    omarchy-runtime = runtime;
-  };
   omawrite = pkgs.callPackage ./omarchy-qt-app.nix {
     pname = "omawrite";
     version = "0.5.0";
@@ -34,6 +24,19 @@ let
     pname = "omacalc";
     version = "0-unstable-2026-08-04";
     src = omacalc-src;
+  };
+  runtime = pkgs.callPackage ./omarchy-runtime.nix {
+    inherit nixpkgsRef omarchySrc;
+    inherit aetherPackage;
+    omacalcPackage = omacalc;
+    omacutPackage = omacut;
+    omawritePackage = omawrite;
+  };
+  shell = pkgs.callPackage ./omarchy-shell.nix {
+    omarchy-runtime = runtime;
+  };
+  fonts = pkgs.callPackage ./omarchy-fonts.nix {
+    omarchy-runtime = runtime;
   };
 in
 {

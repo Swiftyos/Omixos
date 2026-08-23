@@ -20,6 +20,8 @@ let
       coreutils
       curl
       dbus
+      fastfetch
+      ffmpeg
       file
       findutils
       foot
@@ -41,6 +43,7 @@ let
       libxkbcommon
       libnotify
       mise
+      mpv
       nautilus
       neovim
       networkmanager
@@ -63,6 +66,7 @@ let
       wl-clipboard
       wtype
       xdg-utils
+      yt-dlp
     ]
     ++ optionalAvailable pkgs.xdg-terminal-exec
     ++ optionalAvailable pkgs.pavucontrol
@@ -75,11 +79,9 @@ let
     fd
     fzf
     lazygit
-    mpv
     tmux
     tree
     unzip
-    yt-dlp
     zoxide
   ];
 

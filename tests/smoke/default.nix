@@ -6,10 +6,17 @@ pkgs.runCommand "omarchy-runtime-smoke" { nativeBuildInputs = [ pkgs.bash ]; } '
   mkdir -p "$HOME/.config/omarchy/themes" "$XDG_RUNTIME_DIR"
 
   test "$(${runtime}/bin/omarchy-version)" = \
-    "quattro-nixos (30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec)"
+    "quattro-nixos (f4f3d4c71a0a5c392b20ce05291531881a1b3bfe)"
   test -f ${runtime}/share/omarchy/shell/shell.qml
   test -f ${runtime}/share/omarchy/default/hypr/omarchy.lua
   test -f ${runtime}/share/omarchy/themes/tokyo-night/colors.toml
+
+  # omarchy-launch-about sources this library by PATH lookup; the raw script
+  # must resolve ahead of the exec wrapper or sourcing would replace the shell.
+  bash -c 'set -e
+    PATH=${runtime}/share/omarchy/bin:$PATH
+    source omarchy-branding-about-animation
+    declare -F sheen_build >/dev/null'
 
   OMARCHY_THEME_HEADLESS=1 ${runtime}/bin/omarchy-theme-set "Tokyo Night"
   test "$(cat "$HOME/.local/state/omarchy/current/theme.name")" = "tokyo-night"

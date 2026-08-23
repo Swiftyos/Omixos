@@ -33,10 +33,13 @@
   nixpkgsRef,
   omarchySrc,
   aetherPackage,
+  omacalcPackage,
+  omacutPackage,
+  omawritePackage,
 }:
 
 let
-  upstreamRevision = "30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec";
+  upstreamRevision = "f4f3d4c71a0a5c392b20ce05291531881a1b3bfe";
   runtimeDependencies = [
     bash
     coreutils
@@ -85,7 +88,7 @@ stdenvNoCC.mkDerivation {
         runtime="$out/share/omarchy"
         mkdir -p "$runtime" "$out/bin"
 
-        for tree in bin config default themes applications shell; do
+        for tree in bin config default themes applications shell etc; do
           cp -R "$src/$tree" "$runtime/$tree"
         done
 
@@ -129,13 +132,19 @@ stdenvNoCC.mkDerivation {
         find "$runtime/bin" -type f -exec chmod 0755 {} +
         patchShebangs "$runtime/bin" "$runtime/shell"
 
-        # Theme assets copied from the Nix store inherit read-only directory modes.
-        # Make each freshly staged theme writable before it becomes user state so
-        # later live switches can replace nested backgrounds and generated files.
+        # Theme assets copied from the Nix store inherit read-only file and
+        # directory modes. Restore writability immediately after the built-in
+        # copy (so both the plain overlay and the hardened repo-theme staging
+        # can write into it) and again after staging (so no read-only mode from
+        # any source survives into current/theme, where it would wedge the next
+        # switch's rm -rf).
         substituteInPlace "$runtime/bin/omarchy-theme-set" \
           --replace-fail \
-          'cp -r "$USER_THEMES_PATH/$THEME_NAME/"* "$NEXT_THEME_PATH/" 2>/dev/null' \
-          'cp -r "$USER_THEMES_PATH/$THEME_NAME/"* "$NEXT_THEME_PATH/" 2>/dev/null; chmod -R u+w "$NEXT_THEME_PATH"'
+          'cp -r "$OMARCHY_THEMES_PATH/$THEME_NAME/"* "$NEXT_THEME_PATH/" 2>/dev/null' \
+          'cp -r "$OMARCHY_THEMES_PATH/$THEME_NAME/"* "$NEXT_THEME_PATH/" 2>/dev/null; chmod -R u+w "$NEXT_THEME_PATH"' \
+          --replace-fail \
+          'omarchy-theme-set-templates' \
+          'chmod -R u+w "$NEXT_THEME_PATH"; omarchy-theme-set-templates'
 
         # Quickshell's plugin graph can take substantially longer than two seconds
         # to become IPC-ready on a Pi or under AArch64 TCG. Keep the upstream
@@ -253,6 +262,8 @@ stdenvNoCC.mkDerivation {
         install -m 0755 ${./overrides/omarchy-pkg-list} "$runtime/bin/omarchy-pkg-list"
         install -m 0755 ${./overrides/omarchy-pkg-remove} "$runtime/bin/omarchy-pkg-remove"
         install -m 0755 ${./overrides/omarchy-provision-first-run} "$runtime/bin/omarchy-provision-first-run"
+        install -m 0755 ${./overrides/omarchy-hw-autoscale} "$runtime/bin/omarchy-hw-autoscale"
+        install -m 0755 ${./overrides/omarchy-remove-ai-ollama} "$runtime/bin/omarchy-remove-ai-ollama"
         install -m 0755 ${./overrides/omarchy-migrate} "$runtime/bin/omarchy-migrate"
         install -m 0755 ${./overrides/omarchy-dns} "$runtime/bin/omarchy-dns"
         install -m 0755 ${./overrides/omarchy-menu-timezone} "$runtime/bin/omarchy-menu-timezone"
@@ -315,7 +326,10 @@ stdenvNoCC.mkDerivation {
         mkdir -p "$runtime/lib"
         install -m 0644 ${./overrides/omixos-package-map.tsv} "$runtime/lib/omixos-package-map.tsv"
         substituteInPlace "$runtime/lib/omixos-package-map.tsv" \
-          --replace-fail '@aetherStore@' '${aetherPackage}'
+          --replace-fail '@aetherStore@' '${aetherPackage}' \
+          --replace-fail '@omacalcStore@' '${omacalcPackage}' \
+          --replace-fail '@omacutStore@' '${omacutPackage}' \
+          --replace-fail '@omawriteStore@' '${omawritePackage}'
         substituteInPlace "$runtime/bin/omarchy-pkg-add" \
           --replace-fail '@nixpkgsRef@' '${nixpkgsRef}'
         substituteInPlace "$runtime/bin/omarchy-pkg-install" \

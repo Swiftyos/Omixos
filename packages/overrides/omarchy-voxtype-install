@@ -4,6 +4,12 @@
 
 set -euo pipefail
 
+if ! command -v voxtype >/dev/null 2>&1; then
+  echo "VoxType is not part of this OmixOS configuration." >&2
+  echo "Enable programs.omarchy.dictation in the host configuration and rebuild first." >&2
+  exit 2
+fi
+
 state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/toggles"
 mkdir -p "$state_dir"
 rm -f "$state_dir/voxtype-disabled"

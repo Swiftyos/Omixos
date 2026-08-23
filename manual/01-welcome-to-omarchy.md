@@ -6,7 +6,7 @@ command surface, while replacing Arch's mutable package/install machinery with
 declarative NixOS and Home Manager configuration.
 
 The runtime is pinned to upstream Quattro revision
-`30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec`. This manual preserves the useful
+`f4f3d4c71a0a5c392b20ce05291531881a1b3bfe`. This manual preserves the useful
 Quattro interaction guide, but installation, updates, packages, boot, and
 hardware claims are OmixOS-specific.
 

@@ -2,7 +2,9 @@
 
 set -euo pipefail
 
+installing=false
 if [[ ${1:-} == "--install" ]]; then
+  installing=true
   shift
 fi
 
@@ -64,11 +66,16 @@ case "$1" in
 esac
 
 if ! command -v "$command_name" >/dev/null 2>&1; then
-  cat >&2 <<EOF
-$name is not installed. Add its Nix package to the host configuration and rebuild.
-Runtime browser installation is disabled on OmixOS.
-EOF
-  exit 2
+  if [[ $installing == false ]] && [[ ! -t 0 ]]; then
+    exec omarchy-launch-floating-terminal-with-presentation \
+      omarchy-default-browser --install "$1"
+  fi
+  omarchy-install-browser "$1" || exit 1
+  hash -r
+  if ! command -v "$command_name" >/dev/null 2>&1; then
+    echo "$name did not install a '$command_name' command; cannot set it as default." >&2
+    exit 2
+  fi
 fi
 
 env -u BROWSER xdg-settings set default-web-browser "$desktop_id"

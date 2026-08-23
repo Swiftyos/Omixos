@@ -53,6 +53,11 @@ in
       NIXOS_OZONE_WL = "1";
     };
 
+    # omarchy-launch-about reads its pinned fastfetch layout from /etc/fastfetch
+    # (OMARCHY_FASTFETCH_DIR); without it About renders unfitted and skips the
+    # logo animation.
+    environment.etc."fastfetch/config.jsonc".source = "${omarchyPath}/etc/fastfetch/config.jsonc";
+
     environment.etc."wayland-sessions/omixos.desktop".text = ''
       [Desktop Entry]
       Name=OmixOS (Omarchy quattro)

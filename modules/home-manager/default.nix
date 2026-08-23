@@ -244,6 +244,20 @@ in
         seed_path "$source_path" "$HOME/.local/state/omarchy/toggles/hypr/$(basename "$source_path")"
       done < <(find ${omarchyPath}/default/hypr/toggles -maxdepth 1 -type f -name "*.lua" -print0)
 
+      # Upstream migration 1787481315: re-stage the current theme once so any
+      # code files an installed repo theme smuggled into the staged copy are
+      # dropped by the hardened staging path. Fresh homes have no theme yet and
+      # only record the marker; the initial seed below already stages safely.
+      theme_restage_migration="$HOME/.local/state/omarchy/migrations/theme-restage-v1"
+      if [[ ! -e "$theme_restage_migration" ]]; then
+        if [[ -s "$HOME/.local/state/omarchy/current/theme.name" ]]; then
+          HOME="$HOME" OMARCHY_THEME_HEADLESS=1 OMARCHY_THEME_SKIP_BACKGROUND=1 \
+            ${runtime}/bin/omarchy-theme-set \
+            "$(cat "$HOME/.local/state/omarchy/current/theme.name")" || true
+        fi
+        touch "$theme_restage_migration"
+      fi
+
       if [[ ! -s "$HOME/.local/state/omarchy/current/theme.name" ]]; then
         HOME="$HOME" OMARCHY_THEME_HEADLESS=1 \
           ${runtime}/bin/omarchy-theme-set ${lib.escapeShellArg cfg.initialTheme}

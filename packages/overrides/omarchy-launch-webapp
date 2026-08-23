@@ -40,7 +40,7 @@ fi
 # Launch the browser itself through the user manager. Keeping Chromium as the
 # service's main process lets it survive gtk-launch's short-lived transient
 # service without adding a second UWSM delegation layer.
-systemd-run --user \
+systemd-run --user --quiet --collect \
   --unit="omarchy-webapp-$(date +%s%N)" \
   --property=Type=exec \
   "$browser_exec" "${browser_args[@]}" --app="$url" "$@"

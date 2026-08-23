@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# omarchy:summary=Report whether a newer OmixOS source revision is available
+# Exit 0 means an update is available; the bar's update widget lights on 0.
+
 set -euo pipefail
 
 source_dir=${OMIXOS_FLAKE_DIR:-$HOME/.local/share/omixos/source}
@@ -10,21 +13,25 @@ if [[ ${OMIXOS_UPDATE_CHECK_OFFLINE:-0} == 1 ]]; then
 fi
 
 if [[ ! -d $source_dir/.git ]]; then
+  # A fresh image has no checkout yet; omarchy-update clones on first run.
+  # Nothing is known to be newer, so the bar must not light up.
   echo "OmixOS source checkout is not initialized"
-  exit 0
+  exit 1
 fi
 
-git -C "$source_dir" fetch --quiet
-upstream=$(git -C "$source_dir" rev-parse '@{upstream}' 2>/dev/null || true)
+# Never block the shell on a slow or unreachable remote, and never prompt.
+GIT_TERMINAL_PROMPT=0 timeout 10 \
+  git -C "$source_dir" fetch --quiet 2>/dev/null || true
+
+upstream=$(git -C "$source_dir" rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || true)
 [[ -n $upstream ]] || {
   echo "OmixOS source branch has no upstream"
   exit 1
 }
 
-local_rev=$(git -C "$source_dir" rev-parse HEAD)
-remote_rev=$(git -C "$source_dir" rev-parse "$upstream")
-if [[ $local_rev != "$remote_rev" ]]; then
-  echo "OmixOS update available"
+behind=$(git -C "$source_dir" rev-list --count "HEAD..$upstream" 2>/dev/null || echo 0)
+if ((behind > 0)); then
+  echo "OmixOS update available ($behind new commits)"
   exit 0
 fi
 

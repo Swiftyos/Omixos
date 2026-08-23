@@ -35,7 +35,10 @@ if [[ -z $host ]]; then
     omixos-pi4) host=pi4 ;;
     omixos-macos-vm) host=macos-vm ;;
     omixos-m2) host=m2 ;;
-    *) host=pi4 ;;
+    *)
+      echo "Unknown OmixOS host '$(hostname)'; set OMIXOS_HOST to the flake configuration to build." >&2
+      exit 2
+      ;;
   esac
 fi
 
@@ -49,7 +52,7 @@ fi
 if (( dry_run )); then
   printf 'source=%s\nhost=%s\nremote=%s\n' "$source_dir" "$host" "$remote"
   printf 'git clone/pull --ff-only\n'
-  printf 'nix flake update %s\n' "$source_dir"
+  printf 'nix flake update --flake %s\n' "$source_dir"
   printf 'sudo nixos-rebuild switch --flake %s#%s\n' "$source_dir" "$host"
   exit 0
 fi
@@ -80,7 +83,9 @@ omarchy-update-lock run bash -euo pipefail -c '
   trap "omarchy-update-stay-awake stop" EXIT
 
   echo "Updating pinned flake inputs..."
-  nix --extra-experimental-features "nix-command flakes" flake update "$source_dir"
+  # Nix >= 2.19 treats positional arguments as input names; the flake itself
+  # is selected with --flake.
+  nix --extra-experimental-features "nix-command flakes" flake update --flake "$source_dir"
 
   echo "Building and activating OmixOS host $host..."
   sudo nixos-rebuild switch --flake "$source_dir#$host"

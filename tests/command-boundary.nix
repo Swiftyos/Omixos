@@ -50,12 +50,13 @@ pkgs.runCommand "omarchy-command-boundary"
   ''
     shellcheck ${../packages/overrides}/omarchy-*
 
-    # The source pin contains 425 command entry points. The curated profile
-    # deliberately removes the HEY handler and adds omarchy-pkg-list, keeping
-    # the same total. Fail if any command disappears or a preserved/adapted
-    # command regains a direct Arch package, AUR, initramfs, or Limine path.
-    test "$(find ${runtime}/share/omarchy/bin -maxdepth 1 -type f -name 'omarchy*' | wc -l)" -eq 425
-    test "$(find ${runtime}/bin -maxdepth 1 -type f -name 'omarchy*' | wc -l)" -eq 425
+    # The source pin contains 433 command entry points. The curated profile
+    # deliberately removes the HEY handler and adds omarchy-pkg-list plus the
+    # OmixOS display autodetection command omarchy-hw-autoscale, for 434.
+    # Fail if any command disappears or a preserved/adapted command regains a
+    # direct Arch package, AUR, initramfs, or Limine path.
+    test "$(find ${runtime}/share/omarchy/bin -maxdepth 1 -type f -name 'omarchy*' | wc -l)" -eq 434
+    test "$(find ${runtime}/bin -maxdepth 1 -type f -name 'omarchy*' | wc -l)" -eq 434
     boundary_hash="$(sha256sum ${runtime}/share/omarchy/bin/omarchy-brightness-display-apple | cut -d' ' -f1)"
     test "$(sha256sum ${runtime}/share/omarchy/bin/omarchy* | awk -v hash="$boundary_hash" '$1 == hash { count++ } END { print count + 0 }')" -eq ${toString (builtins.length boundaryCommands)}
     for command in ${pkgs.lib.escapeShellArgs boundaryCommands}; do
@@ -105,8 +106,10 @@ pkgs.runCommand "omarchy-command-boundary"
     test ! -e "$test_home/.local/share/applications/Spotify.desktop"
     test ! -e "$test_home/.local/share/applications/Dropbox.desktop"
 
-    HOME="$TMPDIR/update-home" ${runtime}/bin/omarchy-update --dry-run |
+    HOME="$TMPDIR/update-home" OMIXOS_HOST=pi4 ${runtime}/bin/omarchy-update --dry-run |
       grep -F "nixos-rebuild switch"
+    HOME="$TMPDIR/update-home" OMIXOS_HOST=pi4 ${runtime}/bin/omarchy-update --dry-run |
+      grep -F "nix flake update --flake"
     set +e
     update_available="$(HOME="$TMPDIR/update-home" OMIXOS_UPDATE_CHECK_OFFLINE=1 ${runtime}/bin/omarchy-update-available)"
     update_status=$?
@@ -157,7 +160,7 @@ pkgs.runCommand "omarchy-command-boundary"
     OMIXOS_SSHD_DRY_RUN=1 ${runtime}/bin/omarchy-setup-security-sshd --key='ssh-ed25519 test' |
       grep -F 'sshd=enabled'
     test "$(${runtime}/bin/omarchy-version)" = \
-      "quattro-nixos (30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec)"
+      "quattro-nixos (f4f3d4c71a0a5c392b20ce05291531881a1b3bfe)"
     test "$(${runtime}/bin/omarchy-version-channel)" = "nix"
     test "$(${runtime}/bin/omarchy-version-pkgs)" = \
       "not running inside a NixOS system generation"

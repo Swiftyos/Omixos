@@ -9,6 +9,11 @@ ssh_port="${OMIXOS_VM_SSH_PORT:-22222}"
 memory_mib="${OMIXOS_VM_MEMORY_MIB:-16384}"
 cpu_count="${OMIXOS_VM_CPUS:-8}"
 disk_size="${OMIXOS_VM_DISK_SIZE:-128G}"
+# QEMU's cocoa display never propagates window resizes to the guest, so the
+# virtio GPU's preferred mode is the resolution the session actually runs at.
+# Default to 1080p and let the operator match their screen explicitly.
+vm_xres="${OMIXOS_VM_XRES:-1920}"
+vm_yres="${OMIXOS_VM_YRES:-1080}"
 
 iso_url="https://releases.nixos.org/nixos/26.05/nixos-26.05.7675.02e08985a27c/nixos-minimal-26.05.7675.02e08985a27c-aarch64-linux.iso"
 iso_sha256="24ff1da965840d9aa3947da75862b952bd2af7e9636f1a79f1d8960995c5ea63"
@@ -27,6 +32,8 @@ Usage: scripts/macos-vm fetch|create|install|boot
 
 Set OMIXOS_VM_HEADLESS=1 for a serial-only window. Paths, RAM, CPUs, disk size,
 and forwarded SSH port can be overridden with the OMIXOS_VM_* variables above.
+The guest display resolution follows OMIXOS_VM_XRES x OMIXOS_VM_YRES
+(default 1920x1080); set them to your screen's pixel size for a full-screen VM.
 EOF
 }
 
@@ -133,7 +140,7 @@ run_qemu() {
     -drive "if=pflash,format=raw,file=${vars_path}" \
     -drive "if=none,id=system,format=qcow2,file=${disk_path},discard=unmap" \
     -device virtio-blk-pci,drive=system \
-    -device virtio-gpu-pci \
+    -device "virtio-gpu-pci,xres=${vm_xres},yres=${vm_yres}" \
     -device "virtio-sound-pci,audiodev=audio0" \
     -nic "user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:${ssh_port}-:22" \
     "${media[@]}" \

@@ -1,5 +1,16 @@
 # Monitors
 
+**OmixOS autodetects your display.** The kernel reads the monitor's preferred
+resolution over HDMI, Hyprland applies it (`mode = preferred`, `scale =
+auto`), and at each login `omarchy-hw-autoscale` sets the GTK/XWayland
+`GDK_SCALE` to match the monitor scale Hyprland picked — so a Pi 4 on a
+1080p screen gets 1x applications and a 4K retina-class panel gets 2x,
+without editing anything. The hook only ever replaces the shipped default or
+its own previous answer: the moment you pin a scale in
+`~/.config/hypr/monitors.lua` or step scaling with `Super + /`, autodetection
+backs off permanently. Everything below still applies when you want manual
+control.
+
 Omarchy assumes you're running on a 2x-capable retina-class display by default. This is what you need to get those nice, crisp programmer fonts. It's what almost all new premium laptops with high-resolution screens are optimized for. It's what you'd want to run on a 27" 5K [Apple Studio Display](https://www.apple.com/studio-display/)/[ProArt PA27JCV](https://www.asus.com/us/displays-desktops/monitors/proart/proart-display-5k-pa27jcv/)/[Samsung S9](https://www.samsung.com/us/computing/monitors/5k/27-viewfinity-s9-5k-monitor-with-thunderbolt-4-matte-display-and-smart-features-ls27c900panxza/)/[Kuycon G27P](https://kuycon.us/monitors/G27P/) or 32" 6K [Apple XDR](https://www.apple.com/pro-display-xdr/)/[ProArt PA32QCV](https://www.asus.com/displays-desktops/monitors/proart/proart-display-6k-pa32qcv/)/[Kuycon G32P](https://kuycon.us/monitors/G32P/).
 
 But if you're not running a display with a PPI of 218 or above, you'll want to change the monitor settings. For example, if you have a 27" or 32" 4K, you can use fractional scaling by opening `~/.config/hypr/monitors.lua` (via _Setup > Monitors_ in the Omarchy menu) and switching to the recommendation for that combo:

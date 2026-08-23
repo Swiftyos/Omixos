@@ -32,12 +32,17 @@ if [[ ${OMIXOS_PREINSTALLS_CONFIRM:-0} == 1 ]] || \
   gum confirm "Restore all supported preinstalled Omarchy applications?"; then
   echo "Restoring preinstalled OmixOS applications..."
   omarchy-refresh-applications
-  omarchy-pkg-add "${packages[@]}"
+  if ! omarchy-pkg-add "${packages[@]}"; then
+    echo "" >&2
+    echo "Preinstalls are still marked as removed. Fix the errors above and try again." >&2
+    exit 1
+  fi
+  applications_dir="${XDG_DATA_HOME:-$HOME/.local/share}/applications"
   rm -f \
-    "$HOME/.local/share/applications/omacalc.desktop" \
-    "$HOME/.local/share/applications/omacut.desktop" \
-    "$HOME/.local/share/applications/omawrite.desktop"
-  rm -f "$HOME/.local/state/omarchy/preinstalls-removed"
+    "$applications_dir/omacalc.desktop" \
+    "$applications_dir/omacut.desktop" \
+    "$applications_dir/omawrite.desktop"
+  rm -f "${XDG_STATE_HOME:-$HOME/.local/state}/omarchy/preinstalls-removed"
   hyprctl reload >/dev/null 2>&1 || true
   echo "Preinstalled applications have been restored."
 fi

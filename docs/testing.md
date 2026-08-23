@@ -75,6 +75,35 @@ Native ARM results recorded on 2026-08-17:
 - physical and generic graphical results remain separately tracked in
   `PORTING_STATUS.md`.
 
+Native ARM results recorded on 2026-08-23, after the quattro `f4f3d4c7`
+re-pin, the display-autodetection feature, and the override bug-fix sweep:
+
+- full `nix flake check` passed on the re-pinned tree, including the runtime,
+  fonts, Quickshell 0.3.1, headless theme activation, command boundary,
+  Hyprland Lua parser (with the new Quake console config), the AArch64
+  headless system VM, and the full graphical acceptance VM;
+- the graphical VM additionally verified the new display autodetection end to
+  end: Hyprland reported monitor scale 1 on the virtio GPU,
+  `omarchy-hw-autoscale` rewrote the seeded `GDK_SCALE` 2 default to 1 in
+  `~/.config/hypr/monitors.lua`, refreshed the systemd user environment, and
+  recorded its marker; it also verified webp background staging with writable
+  store-derived theme state, the silent update badge on uninitialized
+  checkouts, hidden Extra Themes without git themes, perl UTF-16 clipboard
+  decoding, and the pinned `/etc/fastfetch` About layout;
+- the 433-command upstream surface was re-inventoried; the built runtime
+  exposes 434 after replacing the removed HEY mail handler with
+  `omarchy-pkg-list` and adding the OmixOS `omarchy-hw-autoscale` command;
+  the exact 31 unsupported commands are unchanged;
+- `pi4` system closure built successfully from the locked inputs;
+- the refreshed Pi image built as a 3,902,557,790-byte zstd artifact with
+  SHA-256
+  `d59f921bb3af39cf7af1bede889590fcee62248b853998ac1b1f683522329303`;
+- the copied artifact matched the builder's hash, passed `zstd -t`, and
+  decompressed to a 13,159,354,368-byte raw image with SHA-256
+  `862aed112ff79cfcac307b3287e3e840819fffc10e24999286bc021b8de170f8`, whose
+  MBR carries the 1 GiB FAT32 firmware partition and the bootable 11.25 GiB
+  Linux partition.
+
 ## CI readiness
 
 The repository exposes formatting, flake/module/package evaluation, custom

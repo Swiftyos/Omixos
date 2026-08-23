@@ -10,9 +10,10 @@ if [[ ! -s $state_file ]]; then
   exit 0
 fi
 
+# fzf exits 130 when the user cancels; that is a no-op, not a failure.
 selection="$(cut -f1 "$state_file" | sort -u | fzf --multi \
   --preview 'nix --extra-experimental-features "nix-command flakes" profile list | grep -F -- {} || true' \
-  --preview-window 'down:50%:wrap')"
+  --preview-window 'down:50%:wrap' || true)"
 
 if [[ -n $selection ]]; then
   while IFS= read -r package; do

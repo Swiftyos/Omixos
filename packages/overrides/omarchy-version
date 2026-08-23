@@ -1,3 +1,6 @@
 #!/bin/bash
 
-echo "quattro-nixos (30f7a06090dc20dd1a4a8d0c99bfb8e2370df2ec)"
+# omarchy:summary=Print the OmixOS quattro port version and upstream revision
+
+revision="$(cat "${OMARCHY_PATH:-/usr/share/omarchy}/UPSTREAM_REVISION" 2>/dev/null || true)"
+echo "quattro-nixos (${revision:-unknown})"

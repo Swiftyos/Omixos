@@ -4,6 +4,7 @@
   makeWrapper,
   quickshell,
   omarchy-runtime,
+  qt6Packages,
 }:
 
 stdenvNoCC.mkDerivation {
@@ -17,8 +18,12 @@ stdenvNoCC.mkDerivation {
     mkdir -p "$out/bin" "$out/share/omarchy"
     ln -s ${omarchy-runtime}/share/omarchy/shell "$out/share/omarchy/shell"
 
+    # Theme backgrounds ship as webp since upstream migration 1787133200
+    # ("Add webp decoding to the shell"); Qt only decodes webp through the
+    # qtimageformats plugin, which quickshell's own closure does not carry.
     makeWrapper ${omarchy-runtime}/share/omarchy/bin/omarchy-launch-shell "$out/bin/omarchy-shell-session" \
       --set OMARCHY_PATH ${omarchy-runtime}/share/omarchy \
+      --prefix QT_PLUGIN_PATH : "${qt6Packages.qtimageformats}/${qt6Packages.qtbase.qtPluginPrefix}" \
       --prefix PATH : ${
         lib.makeBinPath [
           quickshell
