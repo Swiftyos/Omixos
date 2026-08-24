@@ -1,0 +1,73 @@
+# Build the Raspberry Pi 4 image and publish it as a GitHub Release whenever
+# a version tag is pushed. Gated behind the same checks that run on every
+# push, so a release can never ship a build that fails eval, the Hyprland
+# config guards, or the command boundary (see checks.yml and
+# docs/testing.md).
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+
+  build-and-release:
+    needs: checks
+    runs-on: ubuntu-24.04-arm
+    # A from-scratch build (kernel plus the full desktop stack) is heavy.
+    # The nixos-raspberrypi cachix substituter below covers most of it; this
+    # ceiling only matters on a substituter cache miss.
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v16
+
+      # Standard GitHub-hosted Ubuntu runners ship ~30 GiB of preinstalled
+      # toolchains this build never touches. Reclaim it before Nix fills the
+      # disk with the image closure; each path is best-effort since ARM64
+      # runner images don't carry every one of them.
+      - name: Free disk space
+        run: |
+          sudo rm -rf \
+            /usr/share/dotnet \
+            /usr/local/lib/android \
+            /opt/ghc \
+            /usr/local/.ghcup \
+            /opt/hostedtoolcache \
+            2>/dev/null || true
+          df -h /
+
+      - name: Build Pi 4 image
+        run: |
+          nix --accept-flake-config build -L \
+            -o result-pi4-image \
+            .#packages.aarch64-linux.pi4-image
+
+      - name: Stage release assets
+        run: |
+          tag="${{ github.ref_name }}"
+          mkdir -p dist
+          cp -L result-pi4-image/sd-image/omixos-pi4.img.zst \
+            "dist/omixos-pi4-${tag}.img.zst"
+          ( cd dist && sha256sum "omixos-pi4-${tag}.img.zst" > "omixos-pi4-${tag}.img.zst.sha256" )
+          ls -lh dist/
+
+      - name: Create release and upload image
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --generate-notes \
+            dist/*
