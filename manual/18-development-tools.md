@@ -32,6 +32,26 @@ The majority of these environments are managed by [Mise](https://mise.jdx.dev/).
 For a project-local runtime, use the project's own environment or add a Nix
 development shell. `mise` is not part of the supported system-update path.
 
+## Ready-made dev environments in ~/dev
+
+Your home directory ships with a `~/dev` folder of example Nix development
+environments, each one a small flake pinned to the same Nixpkgs revision as
+the system:
+
+- `~/dev/n8n` — Node.js 22, pnpm, and the node-gyp toolchain; `nix develop`
+  then `npx n8n` starts the workflow editor on `localhost:5678`.
+- `~/dev/llama-cpp` — CMake/gcc/OpenBLAS and the Python conversion tooling
+  for building [llama.cpp](https://github.com/ggml-org/llama.cpp) from
+  source, NEON-ready on ARM64.
+- `~/dev/pytorch-uv` — Python 3.12 plus [uv](https://docs.astral.sh/uv/),
+  preconfigured so `uv pip install torch` works with stock PyPI wheels on
+  NixOS.
+
+`cd` into a directory, run `nix develop`, and the toolchain is on PATH until
+you `exit` — nothing is installed globally. The folder is seeded once on
+first login and never overwritten afterwards, so edit, copy, or delete these
+freely; `~/dev/README.md` covers the pattern for building your own.
+
 ## Docker
 
 [Docker](https://www.docker.com/) is enabled declaratively in the Pi 4 image as

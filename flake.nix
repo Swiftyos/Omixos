@@ -9,7 +9,13 @@
   };
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    # Exact-rev pin (nixos-unstable channel). Omarchy quattro's Hyprland Lua
+    # config needs Hyprland >= 0.56 (monitor.reserved and friends), which the
+    # frozen nixos-26.05 branch never carries (0.55.4). The rev is spelled out
+    # here because a branch URL that disagrees with flake.lock makes Nix
+    # silently re-resolve the branch tip and build something the lock never
+    # recorded; checks.flake-lock-consistency guards this relationship.
+    nixpkgs.url = "github:NixOS/nixpkgs/f13ff45afd1bb73e640eaa08a7066dbed07e3238";
 
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
@@ -224,6 +230,25 @@
         hyprland-config = import ./tests/hyprland-config.nix {
           inherit pkgs;
           runtime = pkgs.omarchy-runtime;
+        };
+        hyprland-lua-runtime = import ./tests/hyprland-lua-runtime {
+          inherit pkgs;
+          runtime = pkgs.omarchy-runtime;
+        };
+        version-alignment = import ./tests/version-alignment.nix {
+          inherit (nixpkgs) lib;
+          inherit pkgs nixpkgs;
+          flakeLockFile = ./flake.lock;
+          configurations = {
+            dev = devConfiguration;
+            macos-vm = macosVmConfiguration;
+            pi4 = pi4Configuration;
+            pi4-image = pi4ImageConfiguration;
+          };
+          auxConfigurations = {
+            apple-silicon-usb = appleSiliconUsbConfiguration;
+            m2 = m2Configuration;
+          };
         };
         system-smoke-vm = import ./tests/vm.nix {
           inherit pkgs testModules;

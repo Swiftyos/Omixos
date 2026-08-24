@@ -415,7 +415,7 @@ stdenvNoCC.mkDerivation {
   '';
 
   passthru = {
-    inherit runtimeDependencies upstreamRevision;
+    inherit runtimeDependencies upstreamRevision nixpkgsRef;
     omarchyPath = "${placeholder "out"}/share/omarchy";
   };
 

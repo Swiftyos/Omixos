@@ -70,6 +70,11 @@ nix build \
   .#packages.aarch64-linux.omarchy-runtime
 ```
 
+Installed systems seed `~/dev` with example development environments (n8n,
+llama.cpp, PyTorch + uv) as per-project flakes pinned to the system's Nixpkgs
+revision; see `packages/dev-examples/` and the manual's Development Tools
+page.
+
 ## Apple Silicon development VM
 
 On an Apple Silicon Mac, install QEMU and start a clean native AArch64 NixOS

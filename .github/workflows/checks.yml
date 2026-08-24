@@ -1,0 +1,42 @@
+# Fast flake checks on every push. The VM acceptance tests
+# (system-smoke-vm, graphical-smoke-vm) stay out of CI: without KVM they run
+# under TCG for the better part of an hour each. Run those locally per
+# docs/testing.md before cutting an image.
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  flake-checks:
+    # OmixOS is ARM64-first; the aarch64 runner builds the same closures the
+    # images ship instead of cross-checking from x86.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: DeterminateSystems/nix-installer-action@v16
+
+      - name: Evaluation and version guards
+        run: |
+          nix build --no-link -L .#checks.aarch64-linux.version-alignment
+
+      - name: Runtime package and command boundary
+        run: |
+          nix build --no-link -L \
+            .#checks.aarch64-linux.omarchy-runtime \
+            .#checks.aarch64-linux.command-boundary \
+            .#checks.aarch64-linux.runtime-smoke
+
+      - name: Hyprland config, parse and simulated session
+        run: |
+          nix build --no-link -L \
+            .#checks.aarch64-linux.hyprland-config \
+            .#checks.aarch64-linux.hyprland-lua-runtime

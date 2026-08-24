@@ -93,6 +93,15 @@ pkgs.testers.runNixOSTest {
     machine.succeed("test -L /home/omix/.local/share/voxtype/models/ggml-base.en.bin")
     machine.succeed("test -s /home/omix/.local/share/voxtype/models/ggml-base.en.bin")
 
+    machine.succeed("test -f /home/omix/dev/README.md")
+    for example in ["n8n", "llama-cpp", "pytorch-uv"]:
+        machine.succeed(f"test -f /home/omix/dev/{example}/flake.nix")
+        machine.succeed(f"test -f /home/omix/dev/{example}/README.md")
+        # The flakes must be valid Nix and carry the substituted system pin.
+        machine.succeed(f"nix-instantiate --parse /home/omix/dev/{example}/flake.nix > /dev/null")
+    machine.fail("grep -rF '@nixpkgsRef@' /home/omix/dev")
+    machine.succeed("grep -F 'github:NixOS/nixpkgs/' /home/omix/dev/n8n/flake.nix")
+
     # Recreate the exact legacy launchers/default and prove the one-time
     # profile migration updates only those known OmixOS-seeded files.
     machine.succeed("printf 'foot.desktop\\n' > /home/omix/.config/xdg-terminals.list")

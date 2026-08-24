@@ -7,8 +7,10 @@ Run on native `aarch64-linux`:
 ```bash
 nix fmt -- --ci
 nix flake check
+nix build .#checks.aarch64-linux.version-alignment
 nix build .#checks.aarch64-linux.command-boundary
 nix build .#checks.aarch64-linux.hyprland-config
+nix build .#checks.aarch64-linux.hyprland-lua-runtime
 nix build .#checks.aarch64-linux.system-smoke-vm
 nix build .#checks.aarch64-linux.graphical-smoke-vm
 nix build .#packages.aarch64-linux.omarchy-runtime
@@ -23,14 +25,34 @@ version command, and a headless Tokyo Night theme activation into writable
 state. `command-boundary` lints port wrappers and executes representative safe
 failures, Python helpers, diagnostics, icons, and Nix-native update behavior.
 `hyprland-config` asks the exact packaged Hyprland to parse the seeded Lua
-configuration. `system-smoke-vm` boots AArch64 NixOS under QEMU TCG, activates
+configuration — and only to parse it: `--verify-config` runs headless, where
+`hl.get_active_monitor()` answers nil and every monitor-dependent code path
+early-returns, so it proves nothing about what happens once a session has a
+display. That gap once shipped a config that parsed cleanly and then raised
+"attempt to index a nil value" on the first monitor event of every real boot.
+Two checks close it. `hyprland-lua-runtime` executes the whole config through
+a simulated session — monitor hotplug, focus hops, reserved-area changes,
+timer bodies, reload with a live monitor, monitor expiry — against a strict
+mock of the Lua API surface extracted at build time from the pinned Hyprland's
+own source, so config code touching API the shipped compositor lacks fails in
+the check with the same error a user would see. `version-alignment` guards the
+relationships that made that bug possible in the first place: the primary
+nixpkgs lock entry must pin an exact rev and match what evaluation resolves,
+every configuration (including the Pi image composed through
+nixos-raspberrypi's builder) must run the same Hyprland as the flake checks
+test, and that Hyprland must satisfy the omarchy quattro floor of 0.56.
+`system-smoke-vm` boots AArch64 NixOS under QEMU TCG, activates
 the D-Bus services, and verifies the runtime, writable seed state, desktop
 defaults, command boundary, and enabled user units without requiring nested
 KVM. `nix flake check` also evaluates all three `nixosConfigurations`.
 
 `graphical-smoke-vm` boots a normal AArch64 NixOS VM under QEMU TCG with a
 virtio GPU and Mesa software rendering, then follows the production login path
-through greetd, UWSM, Hyprland, and `omarchy-launch-shell`. It verifies a live
+through greetd, UWSM, Hyprland, and `omarchy-launch-shell`. It asks the
+compositor itself for `hyprctl configerrors` right after the session comes up
+and again after the autoscale/theme/dictation reloads, because Hyprland keeps
+running behind its red error bar and every functional assertion can pass while
+the session is visibly broken. It verifies a live
 monitor and Quickshell IPC, bar/menu/notification layers, a Catppuccin theme
 switch from the seeded Tokyo Night state, Ghostty through the actual
 `xdg-terminal-exec` default, VoxType's daemon/model/GTK4 OSD and binding

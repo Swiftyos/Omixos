@@ -84,7 +84,7 @@ in
   # (a from-source WebKit build) instead of reusing the verified generic
   # derivations.
   nixpkgs.overlays = lib.mkAfter [
-    (_final: _prev: {
+    (final: prev: {
       inherit (genericNixpkgs) chromium ghostty;
       inherit (omixosGenericPkgs)
         aether
@@ -96,6 +96,35 @@ in
         omarchy-shell
         quickshell
         ;
+
+      # The board's ffmpeg-rpi wraps nixpkgs ffmpeg_8 with the V4L2-request
+      # patches, and current nixpkgs ships an SVT-AV1 whose API that ffmpeg
+      # release no longer compiles against. A software AV1 encoder is dead
+      # weight on this board anyway: rebuild the rpi wrapper on a base ffmpeg
+      # without it, keeping every rpi patch and hardware codec path. The
+      # -headless/-full variants and the ffmpeg aliases in the hardware
+      # overlay all derive from final.ffmpeg_8, so this one substitution
+      # covers the whole family.
+      ffmpeg_8 = prev.ffmpeg_8.override {
+        ffmpeg = genericNixpkgs.ffmpeg_8.override { withSvtav1 = false; };
+      };
+
+      # The board overlays rebuild the Python ecosystem, which re-runs test
+      # suites the binary cache normally settles. python-ulid's
+      # test_same_millisecond_overflow races the millisecond boundary and
+      # fails intermittently under emulated builders' coarse clocks; the
+      # package itself is unaffected.
+      pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+        (pyfinal: pyprev: {
+          python-ulid = pyprev.python-ulid.overridePythonAttrs (old: {
+            doCheck = false;
+            # ulid/__init__.py imports typing_extensions at runtime; upstream
+            # nixpkgs only receives it through the test environment, which
+            # disabling the flaky check no longer provides.
+            dependencies = (old.dependencies or [ ]) ++ [ pyfinal.typing-extensions ];
+          });
+        })
+      ];
     })
   ];
 

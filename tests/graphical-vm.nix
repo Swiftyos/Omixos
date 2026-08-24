@@ -88,6 +88,23 @@ pkgs.testers.runNixOSTest {
             + shlex.quote(session_environment + command)
         )
 
+    def assert_clean_hyprland_config():
+        # A config that parses can still throw once monitor events start
+        # firing (verify-config runs headless and never executes those
+        # paths), and Hyprland keeps running behind its red error bar, so
+        # every functional check below can pass while the session is visibly
+        # broken. Ask the compositor itself.
+        machine.succeed(
+            as_omix(
+                "test -z \"$(timeout 10s hyprctl configerrors | tr -d '[:space:]')\""
+            )
+        )
+        machine.fail(
+            as_omix(
+                "grep -rF 'attempt to index' /run/user/1000/hypr/*/hyprland.log"
+            )
+        )
+
     machine.start()
     machine.wait_for_unit("multi-user.target")
     machine.wait_for_unit("greetd.service")
@@ -118,6 +135,10 @@ pkgs.testers.runNixOSTest {
         as_omix("omarchy-shell notifications ping | grep -Fx ok"),
         timeout=60,
     )
+
+    # The session is up and the first monitor events have fired; the config
+    # must have survived them without runtime errors.
+    assert_clean_hyprland_config()
 
     # Display autodetection: the virtio GPU reports no physical size, Hyprland
     # picks monitor scale 1, and omarchy-hw-autoscale must align the seeded
@@ -425,5 +446,9 @@ pkgs.testers.runNixOSTest {
     machine.succeed(
         as_omix("test -z \"$(systemctl --user --failed --no-legend)\"")
     )
+
+    # The autoscale rewrite, theme switch, and voxtype lifecycle above all
+    # triggered config reloads with a live monitor; none may have left errors.
+    assert_clean_hyprland_config()
   '';
 }

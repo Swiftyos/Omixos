@@ -10,6 +10,18 @@ let
   runtime = cfg.package;
   omarchyPath = "${runtime}/share/omarchy";
   voxtypeModelName = "ggml-base.en.bin";
+
+  # Example development environments seeded into ~/dev. Their flakes pin the
+  # same nixpkgs revision as the system runtime, so entering one reuses the
+  # store the image already carries instead of resolving a second package set.
+  devExamples = pkgs.runCommand "omixos-dev-examples" { } ''
+    cp -R ${../../packages/dev-examples} "$out"
+    chmod -R u+w "$out"
+    for flake in "$out"/*/flake.nix; do
+      substituteInPlace "$flake" \
+        --replace-fail '@nixpkgsRef@' ${lib.escapeShellArg runtime.nixpkgsRef}
+    done
+  '';
 in
 {
   options.programs.omarchy = {
@@ -26,6 +38,16 @@ in
       type = lib.types.str;
       default = "Tokyo Night";
       description = "Theme seeded only when no active theme exists.";
+    };
+
+    devExamples.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        Seed example Nix development environments (n8n, llama.cpp,
+        PyTorch + uv) into ~/dev on first activation. Each entry is seeded
+        only while absent, so user edits and deletions stick.
+      '';
     };
 
     dictation = {
@@ -243,6 +265,12 @@ in
       while IFS= read -r -d "" source_path; do
         seed_path "$source_path" "$HOME/.local/state/omarchy/toggles/hypr/$(basename "$source_path")"
       done < <(find ${omarchyPath}/default/hypr/toggles -maxdepth 1 -type f -name "*.lua" -print0)
+
+      ${lib.optionalString cfg.devExamples.enable ''
+        while IFS= read -r -d "" source_path; do
+          seed_path "$source_path" "$HOME/dev/$(basename "$source_path")"
+        done < <(find ${devExamples} -mindepth 1 -maxdepth 1 -print0)
+      ''}
 
       # Upstream migration 1787481315: re-stage the current theme once so any
       # code files an installed repo theme smuggled into the staged copy are

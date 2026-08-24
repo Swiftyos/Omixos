@@ -41,6 +41,16 @@ generic graphical testing, and physical testing are intentionally distinct.
 - [x] Upstream Lua config seeded as writable user configuration
 - [x] Lua config parses with the pinned Hyprland (`config ok`)
 - [x] Generic ARM graphical session verified under AArch64 QEMU TCG
+- [x] Hyprland pinned at 0.56.1; quattro's Lua config needs the 0.56 monitor
+      API (`monitor.reserved` in `default/hypr/qconsole.lua`), which the
+      frozen nixos-26.05 branch (0.55.4) never carries
+- [x] Simulated-session Lua runtime check passes against the API surface
+      extracted from the shipped Hyprland (`hyprland-lua-runtime`)
+- [x] Version-alignment guard passes: exact-rev lock, one Hyprland across all
+      primary configurations, quattro floor satisfied (`version-alignment`)
+- [x] Live `hyprctl configerrors` assertions green in the graphical VM run
+      (full graphical acceptance suite re-passed on Hyprland 0.56.1,
+      2026-08-24)
 
 ## Themes
 
