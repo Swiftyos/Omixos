@@ -1,5 +1,10 @@
 # OmixOS
 
+> **Warning:** OmixOS is an experimental AI port of Omarchy for the Raspberry
+> Pi, and an experiment in trying out NixOS. For the original project, visit
+> [Omarchy](https://github.com/basecamp/omarchy). Only use this if you
+> understand what you are doing.
+
 OmixOS ports the checked-out Omarchy **quattro** desktop to idiomatic NixOS.
 The primary target is Raspberry Pi 4 (`aarch64-linux`); an Apple Silicon M2
 host and a generic ARM64 development host share the same desktop modules.
